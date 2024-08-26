@@ -6,22 +6,23 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 
 const columns = [
-    { field: 'id', headerName: 'ID', width: 90,flex:1 },
-    { field: 'date', headerName: 'Date', width: 150 ,flex:1},
-    { field: 'time', headerName: 'Time', width: 120 ,flex:1},
-    { field: 'adults', headerName: 'Adults', width: 100,flex:1 },
-    { field: 'children', headerName: 'Children', width: 100 ,flex:1},
-    { field: 'total_people', headerName: 'Total People', width: 150 ,flex:1},
+    { field: 'id', headerName: 'ID', width: 90, flex: 2 },
+    { field: 'date', headerName: 'Date', width: 150, flex: 1 },
+    { field: 'time', headerName: 'Time', width: 120, flex: 1 },
+    { field: 'adults', headerName: 'Adults', width: 100, flex: 1 },
+    { field: 'children', headerName: 'Children', width: 100, flex: 1 },
+    { field: 'total_people', headerName: 'Total People', width: 150, flex: 1 },
     {
-        field: 'total_price', headerName: 'Total Price', width: 150,justifyContent:'center',alignItems:'center',
+        field: 'total_price', headerName: 'Total Price', width: 150, justifyContent: 'center', alignItems: 'center',
         renderCell: (params) => (
             <Typography variant="body2" color="primary">
                 ${params.value.toFixed(2)}
             </Typography>
         )
     },
-    { field: 'customer_name', headerName: 'Customer Name', width: 200,flex:1 },
+    { field: 'customer_name', headerName: 'Customer Name', width: 200, flex: 1 },
     { field: 'email', headerName: 'Email', width: 250 },
+    { field: 'tel', headerName: 'Telephone', width: 250, flex: 1 },
     {
         field: 'actions',
         headerName: 'Actions',
@@ -81,7 +82,7 @@ const CSMTable = () => {
 
     return (
         <Box>
-            <Card sx={{ width: '90%', margin: 4  ,p:2}}>
+            <Card sx={{ width: '90%', margin: 4, p: 2 }}>
                 <Grid container spacing={2} sx={{ mb: 2 }}>
                     <Grid item xs={12} md={6}>
                         <TextField

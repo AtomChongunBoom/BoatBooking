@@ -20,12 +20,14 @@ import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
 import CustomStepper from '../component/timeline';
 import axios from 'axios';
+
 const BookingView = () => {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [selectedTime, setSelectedTime] = useState(null);
   const [adults, setAdults] = useState(0);
   const [children, setChildren] = useState(0);
   const [openDialog, setOpenDialog] = useState(false);
+  const [tel, setTel] = useState();
 
   const timeSlots = ['9:00 - 10:30', '10:00 - 11:30', '11:00 - 12:30', '12:00 - 13:30', '13:00 - 14:30', '13:30 - 15:00'];
 
@@ -77,22 +79,32 @@ const BookingView = () => {
   };
 
   const handleSubmitted = () => {
+      if (!name || !email || !tel || !selectedTime) {
+          alert('Please fill out all required fields.');
+          return;
+      }
+
+    console.log(new Date());
+  
     const bookingData = {
       "id" : uuidv4(),
       "date": selectedDate.toLocaleDateString(),
       "time": selectedTime,
       "adults": adults,
       "children": children,
-      "total_people":adults + children,
+      "total_people": adults + children,
       "total_price": totalPrice,
       'customer_name': name,
-      'email': email
+      'email': email,
+      'tel': tel,
+      'creat_date': new Date().toISOString() // Changed from 'creat_date' to 'created_date'
     };
     console.log("Data:", bookingData);
     
     setOpenDialog(false);
-    addTicketboat(bookingData)
-  };
+    addTicketboat(bookingData);
+};
+
 
   const addTicketboat = async (data) => {
     try {
@@ -222,6 +234,14 @@ const BookingView = () => {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
+                />
+                 <TextField
+                  margin="normal"
+                  fullWidth
+                  label="เบอร์โทรศัพท์"
+                  type="tel"
+                  value={tel}
+                  onChange={(e) => setTel(e.target.value)}
                 />
               </DialogContent>
               <DialogActions>

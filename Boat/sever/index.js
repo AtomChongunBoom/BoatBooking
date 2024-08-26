@@ -5,6 +5,9 @@ const mysql = require('mysql');
 const cors = require('cors');
 require('dotenv').config(); // To use environment variables
 
+const swaggerJsDoc = require('swagger-jsdoc');
+const swaggerUi = require('swagger-ui-express');
+
 const app = express();
 const port = 8000;
 
@@ -17,16 +20,70 @@ const db = mysql.createConnection({
   host: 'localhost',
   user: 'root',
   database: "boatbooking"
-})
+});
 
+// Swagger configuration
+const swaggerOptions = {
+  swaggerDefinition: {
+    openapi: '3.0.0',
+    info: {
+      title: 'Boat Booking API',
+      version: '1.0.0',
+      description: 'API for managing boat ticket bookings',
+    },
+    servers: [
+      {
+        url: 'http://localhost:8000',
+        description: 'Local server'
+      }
+    ]
+  },
+  apis: ['index.js'], // Assuming your file is named 'index.js'
+};
 
+const swaggerDocs = swaggerJsDoc(swaggerOptions);
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
+
+/**
+ * @swagger
+ * /getTicketboat:
+ *   get:
+ *     summary: Get all ticket boat records
+ *     responses:
+ *       200:
+ *         description: Successful response
+ */
 app.get('/getTicketboat',(req, res) => {
-  db.query('SELECT * FROM ticketboat', (err, result) => {
+  db.query('SELECT * FROM ticketboat ORDER BY creat_date DESC', (err, result) => {
     if(err) throw err;
     res.send(result);
   })
 })
 
+/**
+ * @swagger
+ * /getCount:
+ *   get:
+ *     summary: Get total count of adults, children, and people for a given date and time
+ *     parameters:
+ *       - in: body
+ *         name: body
+ *         required: true
+ *         description: Date and time for count query
+ *         schema:
+ *           type: object
+ *           required:
+ *             - date
+ *             - time
+ *           properties:
+ *             date:
+ *               type: string
+ *             time:
+ *               type: string
+ *     responses:
+ *       200:
+ *         description: Successful response
+ */
 app.get('/getCount', (req, res) => {
   const { date, time } = req.body; 
 
@@ -55,15 +112,50 @@ app.get('/getCount', (req, res) => {
   });
 });
 
-
+/**
+ * @swagger
+ * /addTicketboat:
+ *   post:
+ *     summary: Add a new ticket boat record
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               id:
+ *                 type: integer
+ *               date:
+ *                 type: string
+ *               time:
+ *                 type: string
+ *               adults:
+ *                 type: integer
+ *               children:
+ *                 type: integer
+ *               total_people:
+ *                 type: integer
+ *               total_price:
+ *                 type: number
+ *               customer_name:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *               tel:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: Record added successfully
+ */
 app.post('/addTicketboat', (req, res) => {
-  const { date, time, adults, children, total_people, total_price, customer_name, email } = req.body;
+  const { id, date, time, adults, children, total_people, total_price, customer_name, email, tel, creat_date } = req.body;
 
   const sql = `
-    INSERT INTO ticketboat (date, time, adults, children, total_people, total_price, customer_name, email)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO ticketboat (id, date, time, adults, children, total_people, total_price, customer_name, email, tel, creat_date)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `;
-  db.query(sql, [date, time, adults, children, total_people, total_price, customer_name, email], (err, result) => {
+  db.query(sql, [id, date, time, adults, children, total_people, total_price, customer_name, email, tel, creat_date], (err, result) => {
     if (err) {
       console.error('Database query error:', err);
       return res.status(500).json({ error: 'Database query failed' });
@@ -72,6 +164,29 @@ app.post('/addTicketboat', (req, res) => {
   });
 });
 
+
+/**
+ * @swagger
+ * /send-email:
+ *   post:
+ *     summary: Send an email
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               to:
+ *                 type: string
+ *               subject:
+ *                 type: string
+ *               text:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Email sent successfully
+ */
 const transporter = nodemailer.createTransport({
   service: 'gmail',
   secure: false,
