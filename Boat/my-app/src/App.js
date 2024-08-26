@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Container,
   Grid,
@@ -18,10 +18,9 @@ import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
 import CustomStepper from './component/timeline';
-
 const App = () => {
   const [selectedDate, setSelectedDate] = useState(new Date());
-  const [selectedTime, setSelectedTime] = useState('');
+  const [selectedTime, setSelectedTime] = useState(null);
   const [adults, setAdults] = useState(0);
   const [children, setChildren] = useState(0);
   const [openDialog, setOpenDialog] = useState(false);
@@ -35,56 +34,67 @@ const App = () => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
 
-  const [step, setStep] = useState(0)
+  const [step, setStep] = useState(1);
+
+  useEffect(() => {
+    if (selectedDate && !selectedTime && adults === 0 && children === 0) {
+      setStep(1);
+    } else if (selectedDate && selectedTime && adults === 0 && children === 0) {
+      setStep(2);
+    } else if (selectedDate && selectedTime && (adults !== 0 || children !== 0)) {
+      setStep(3);
+    }
+  }, [selectedDate, selectedTime, adults, children]); // Dependencies
 
   const handleTimeSelect = (time) => {
     setSelectedTime(time);
-    setStep(2)
   };
 
   const handleBooking = () => {
     setOpenDialog(true);
   };
 
-  const handlePickTine = (newValue) => {
-    setSelectedDate(newValue)
-    setStep(1)
+  const handlePickTime = (newValue) => {
+    setSelectedDate(newValue);
   };
 
-  const handleAdultsAdd = (event) => {
-    setAdults(adults + 1)
-    setStep(3)
+  const handleAdultsAdd = () => {
+    setAdults(adults + 1);
   };
 
-  const handleAdultsMinus = (event) => {
-    setAdults(Math.max(1, adults - 1))
-    setStep(3)
+  const handleAdultsMinus = () => {
+    setAdults(Math.max(0, adults - 1));
   };
 
-  const handleChildsAdd = (event) => {
-    setChildren(children + 1)
-    setStep(3)
+  const handleChildrenAdd = () => {
+    setChildren(children + 1);
   };
 
-  const handleChildsMinus = (event) => {
-    setChildren(Math.max(1, children - 1))
-    setStep(3)
+  const handleChildrenMinus = () => {
+    setChildren(Math.max(0, children - 1));
   };
 
-  const handleSubmitted = (event) => {
-    console.log("Data: ",{"วันที่":selectedDate.toLocaleDateString(),"เวลา":selectedTime,"ผู้ใหญ่":adults,"เด็ก":children,"ยอด":totalPrice,'Costumer':name,'email':email} )
-    setOpenDialog(false)
-  }
-
-
-
+  const handleSubmitted = () => {
+    const bookingData = {
+      "วันที่": selectedDate.toLocaleDateString(),
+      "เวลา": selectedTime,
+      "ผู้ใหญ่": adults,
+      "เด็ก": children,
+      "ยอด": totalPrice,
+      'Customer': name,
+      'email': email
+    };
+    console.log("Data:", bookingData);
+    setOpenDialog(false);
+  };
+  
   return (
     <Box
       sx={{
-        height: '90vh',
+        height: '100vh',
         width: '100vw',
         backgroundImage: `
-          linear-gradient(to top, rgba(255, 255, 255, 255) 10%, rgba(0, 0, 0, 0) 100%),
+          linear-gradient(to top, rgba(255, 255, 255, 255) 40%, rgba(0, 0, 0, 0) 100%),
           url(https://resource.nationtv.tv/uploads/images/md/2021/09/iZZnJJkBL2Sf64HoM8b5.jpg?x-image-process=style/lg)
         `,
         backgroundSize: 'cover',
@@ -96,7 +106,7 @@ const App = () => {
       }}
     >
       <Box sx={{ bgcolor: 'white', opacity: '90%', height: '64vh', borderRadius: 3, width: '70%' }}>
-        <CustomStepper currentStep={step - 1} />
+        <CustomStepper currentStep={step-1} />
         <LocalizationProvider dateAdapter={AdapterDateFns} sx={{ width: '100%' }}>
           <Container maxWidth="lg" sx={{ mt: 4, backgroundClip: 'white', opacity: '100%', zIndex: 1 }}>
 
@@ -106,7 +116,7 @@ const App = () => {
                   <StaticDatePicker
                     displayStaticWrapperAs="desktop"
                     value={selectedDate}
-                    onChange={(newValue) => handlePickTine(newValue)}
+                    onChange={(newValue) => handlePickTime(newValue)}
                     renderInput={(params) => <TextField {...params} />}
                   />
                 </Grid>
@@ -144,11 +154,11 @@ const App = () => {
                   <Box sx={{ mb: 2 }}>
                     <Typography>เด็ก (THB {childPrice})</Typography>
                     <Box display="flex" alignItems="center">
-                      <Button onClick={(e) => handleChildsMinus(e)}>
+                      <Button onClick={(e) => handleChildrenMinus(e)}>
                         <RemoveIcon />
                       </Button>
                       <Typography sx={{ mx: 2 }}>{children}</Typography>
-                      <Button onClick={(e) => handleChildsAdd(e)}>
+                      <Button onClick={(e) => handleChildrenAdd(e)}>
                         <AddIcon />
                       </Button>
                     </Box>
@@ -176,7 +186,6 @@ const App = () => {
                 <Typography>ผู้ใหญ่: {adults} คน</Typography>
                 <Typography>เด็ก: {children} คน</Typography>
                 <Typography variant="h6">ยอดรวม: {totalPrice.toFixed(2)} บาท</Typography>
-
                 <TextField
                   margin="normal"
                   fullWidth
@@ -204,7 +213,6 @@ const App = () => {
         </LocalizationProvider>
       </Box>
     </Box>
-
   );
 };
 
