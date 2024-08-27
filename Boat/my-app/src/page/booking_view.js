@@ -33,6 +33,8 @@ const BookingView = () => {
   const [openDialog, setOpenDialog] = useState(false);
   const [tel, setTel] = useState();
 
+  const DefaultDate = new Date();
+
   const timeSlots = ['9:00 - 10:30', '10:00 - 11:30', '11:00 - 12:30', '12:00 - 13:30', '13:00 - 14:30', '13:30 - 15:00'];
 
   const adultPrice = 1500;
@@ -147,13 +149,13 @@ const BookingView = () => {
         <CustomStepper currentStep={step - 1} />
         <LocalizationProvider dateAdapter={AdapterDateFns} sx={{ width: '100%' }}>
           <Container maxWidth="lg" sx={{ mt: 4, backgroundClip: 'white', opacity: '100%', zIndex: 1 }}>
-
             <Paper elevation={3} sx={{ mt: 3, p: 1, width: '100%' }}>
               <Grid container spacing={3}>
                 <Grid item xs={12} md={4} >
                   <StaticDatePicker
                     displayStaticWrapperAs="desktop"
                     value={selectedDate}
+                    minDate={DefaultDate}
                     onChange={(newValue) => handlePickTime(newValue)}
                     renderInput={(params) => <TextField {...params} />}
                   />
