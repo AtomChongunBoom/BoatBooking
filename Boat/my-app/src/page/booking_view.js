@@ -14,6 +14,7 @@ import {
   DialogActions,
   Card
 } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
 import { LocalizationProvider, StaticDatePicker } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import AddIcon from '@mui/icons-material/Add';
@@ -22,6 +23,9 @@ import CustomStepper from '../component/timeline';
 import axios from 'axios';
 
 const BookingView = () => {
+
+  const theme = useTheme();
+
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [selectedTime, setSelectedTime] = useState(null);
   const [adults, setAdults] = useState(0);
@@ -79,15 +83,15 @@ const BookingView = () => {
   };
 
   const handleSubmitted = () => {
-      if (!name || !email || !tel || !selectedTime) {
-          alert('Please fill out all required fields.');
-          return;
-      }
+    if (!name || !email || !tel || !selectedTime) {
+      alert('Please fill out all required fields.');
+      return;
+    }
 
     console.log(new Date());
-  
+
     const bookingData = {
-      "id" : uuidv4(),
+      "id": uuidv4(),
       "date": selectedDate.toLocaleDateString(),
       "time": selectedTime,
       "adults": adults,
@@ -100,10 +104,10 @@ const BookingView = () => {
       'creat_date': new Date().toISOString() // Changed from 'creat_date' to 'created_date'
     };
     console.log("Data:", bookingData);
-    
+
     setOpenDialog(false);
     addTicketboat(bookingData);
-};
+  };
 
 
   const addTicketboat = async (data) => {
@@ -121,7 +125,7 @@ const BookingView = () => {
   };
 
 
-  
+
   return (
     <Box
       sx={{
@@ -140,7 +144,7 @@ const BookingView = () => {
       }}
     >
       <Box sx={{ bgcolor: 'white', opacity: '90%', height: '64vh', borderRadius: 3, width: '70%' }}>
-        <CustomStepper currentStep={step-1} />
+        <CustomStepper currentStep={step - 1} />
         <LocalizationProvider dateAdapter={AdapterDateFns} sx={{ width: '100%' }}>
           <Container maxWidth="lg" sx={{ mt: 4, backgroundClip: 'white', opacity: '100%', zIndex: 1 }}>
 
@@ -212,20 +216,26 @@ const BookingView = () => {
               </Grid>
             </Paper>
 
-            <Dialog open={openDialog} onClose={() => setOpenDialog(false)}>
-              <DialogTitle>รายละเอียดการจอง</DialogTitle>
-              <DialogContent>
-                <Typography>วันที่: {selectedDate.toLocaleDateString()}</Typography>
-                <Typography>เวลา: {selectedTime}</Typography>
-                <Typography>ผู้ใหญ่: {adults} คน</Typography>
-                <Typography>เด็ก: {children} คน</Typography>
-                <Typography variant="h6">ยอดรวม: {totalPrice.toFixed(2)} บาท</Typography>
+            <Dialog open={openDialog} onClose={() => setOpenDialog(false)} maxWidth="sm" fullWidth>
+              <DialogTitle style={{ backgroundColor: theme.palette.primary.main, color: theme.palette.common.white }}>
+                รายละเอียดการจอง
+              </DialogTitle>
+              <DialogContent dividers style={{ padding: theme.spacing(3), backgroundColor: theme.palette.background.default }}>
+                <Typography variant="body1" gutterBottom>วันที่: {selectedDate.toLocaleDateString()}</Typography>
+                <Typography variant="body1" gutterBottom>เวลา: {selectedTime}</Typography>
+                <Typography variant="body1" gutterBottom>ผู้ใหญ่: {adults} คน</Typography>
+                <Typography variant="body1" gutterBottom>เด็ก: {children} คน</Typography>
+                
+                <Typography variant="h6" color="primary" gutterBottom sx={{display:'flex',justifyContent:'end'}} >ยอดรวม: {totalPrice.toFixed(2)} บาท</Typography>
+
                 <TextField
                   margin="normal"
                   fullWidth
                   label="ชื่อ"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
+                  variant="outlined"
+                  color="primary"
                 />
                 <TextField
                   margin="normal"
@@ -234,18 +244,24 @@ const BookingView = () => {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
+                  variant="outlined"
+                  color="primary"
                 />
-                 <TextField
+                <TextField
                   margin="normal"
                   fullWidth
                   label="เบอร์โทรศัพท์"
                   type="tel"
                   value={tel}
                   onChange={(e) => setTel(e.target.value)}
+                  variant="outlined"
+                  color="primary"
                 />
               </DialogContent>
-              <DialogActions>
-                <Button onClick={() => setOpenDialog(false)}>ยกเลิก</Button>
+              <DialogActions style={{ padding: theme.spacing(2) }}>
+                <Button onClick={() => setOpenDialog(false)} sx={{}}>
+                  ยกเลิก
+                </Button>
                 <Button variant="contained" color="primary" onClick={(e) => handleSubmitted(e)}>
                   ยืนยันการจอง
                 </Button>

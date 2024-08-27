@@ -6,7 +6,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 
 const columns = [
-    { field: 'id', headerName: 'ID', width: 90, flex: 2 },
+    { field: 'id', headerName: 'ID', width: 90, flex: 3 },
     { field: 'date', headerName: 'Date', width: 150, flex: 1 },
     { field: 'time', headerName: 'Time', width: 120, flex: 1 },
     { field: 'adults', headerName: 'Adults', width: 100, flex: 1 },
