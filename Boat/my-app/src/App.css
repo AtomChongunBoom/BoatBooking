@@ -41,3 +41,7 @@
     transform: rotate(360deg);
   }
 }
+
+Button .MuiButtonBase-root .MuiButton-root {
+    width: 45px !important;
+}

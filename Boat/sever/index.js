@@ -84,9 +84,10 @@ app.get('/getTicketboat',(req, res) => {
  *       200:
  *         description: Successful response
  */
-app.get('/getCount', (req, res) => {
-  const { date, time } = req.body; 
+app.get('/getCount/:date/:time', (req, res) => {
+  const { date, time } = req.params;
 
+  // Define the SQL query to get the ticket counts
   const query = `
     SELECT 
       date, 
@@ -102,15 +103,28 @@ app.get('/getCount', (req, res) => {
       date, time;
   `;
 
-  db.query(query, [date, time], (err, result) => {
+  // Execute the SQL query
+  db.query(query, [date, time], (err, results) => {
     if (err) {
       console.error(err);
-      res.status(500).send('Server Error');
+      res.status(500).json({ error: 'Server Error' });
     } else {
-      res.json(result);
+      if (results.length > 0) {
+        const result = results[0];
+        res.json({
+          date: result.date,
+          time: result.time,
+          total_adults: result.total_adults,
+          total_children: result.total_children,
+          total_people: result.total_people
+        });
+      } else {
+        res.json({});
+      }
     }
   });
 });
+
 
 /**
  * @swagger
@@ -149,13 +163,13 @@ app.get('/getCount', (req, res) => {
  *         description: Record added successfully
  */
 app.post('/addTicketboat', (req, res) => {
-  const { id, date, time, adults, children, total_people, total_price, customer_name, email, tel, creat_date } = req.body;
-
+  const { id, date, time, adults, children, total_people, total_price, customer_name, email, tel,creat_date } = req.body;
+  const status = "เสร็จสิ้น"
   const sql = `
-    INSERT INTO ticketboat (id, date, time, adults, children, total_people, total_price, customer_name, email, tel, creat_date)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO ticketboat (id, date, time, adults, children, total_people, total_price, customer_name, email, tel, status,creat_date)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?)
   `;
-  db.query(sql, [id, date, time, adults, children, total_people, total_price, customer_name, email, tel, creat_date], (err, result) => {
+  db.query(sql, [id, date, time, adults, children, total_people, total_price, customer_name, email, tel, status,creat_date], (err, result) => {
     if (err) {
       console.error('Database query error:', err);
       return res.status(500).json({ error: 'Database query failed' });
@@ -220,6 +234,8 @@ app.post('/send-email', (req, res) => {
     res.status(200).send('Email sent: ' + info.response);
   });
 });
+
+
 
 app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`);
