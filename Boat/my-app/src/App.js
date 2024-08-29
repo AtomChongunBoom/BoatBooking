@@ -1,6 +1,6 @@
 import { BrowserRouter as Router, Route, Routes, Link } from 'react-router-dom';
 import { AppBar, Toolbar, Typography, Button, Container } from '@mui/material';
-import BookingView from './page/ิBooking/booking_view';
+import BookingView from './page/Booking/booking_view';
 import CSMTable from './page/manage_view';
 
 function App() {
