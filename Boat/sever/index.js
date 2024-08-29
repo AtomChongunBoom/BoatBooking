@@ -3,6 +3,7 @@ const nodemailer = require('nodemailer');
 const bodyParser = require('body-parser');
 const mysql = require('mysql');
 const cors = require('cors');
+const fs = require('fs');
 require('dotenv').config(); // To use environment variables
 
 const swaggerJsDoc = require('swagger-jsdoc');
@@ -219,11 +220,13 @@ app.post('/send-email', (req, res) => {
     return res.status(400).send('Missing required fields');
   }
 
+  const htmlFile = fs.readFileSync('email.html', 'utf8');
+
   const mailOptions = {
     from: process.env.EMAIL_USER, 
     to: to,                      
     subject: subject,            
-    text: text                   
+    html: htmlFile  // Replace with your HTML content
   };
 
   transporter.sendMail(mailOptions, (error, info) => {

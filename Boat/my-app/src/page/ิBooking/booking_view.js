@@ -25,7 +25,6 @@ import {
   Campaign
 } from '@mui/icons-material';
 import Swal from 'sweetalert2';
-import { IoMdPerson } from "react-icons/io";
 import { FaSadTear } from 'react-icons/fa';
 import { MdCancel } from "react-icons/md";
 import { BsCheckCircleFill } from "react-icons/bs";
@@ -34,10 +33,12 @@ import { LocalizationProvider, StaticDatePicker, MobileDatePicker } from '@mui/x
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
-import CustomStepper from '../component/timeline';
+import CustomStepper from '../../component/timeline';
 import { format } from 'date-fns';
 import axios from 'axios';
-import BoatBookingLanding from './landingPage';
+import BoatBookingLanding from '../LandingPage/landingPage_view';
+
+import { Rules } from './booking_model';
 
 const BookingView = () => {
 
@@ -171,7 +172,7 @@ const BookingView = () => {
         text: 'จำนวนผู้โดยสาร "ผู้ใหญ่" น้อยเกินกำหนด'
       });
       return;
-    }else if(children == 0 && adults == 0){
+    }else if(children === 0 && adults === 0){
       setOpenDialog(false);
       Swal.fire({
         icon: 'error',
@@ -282,60 +283,6 @@ const BookingView = () => {
       background: theme.palette.primary.dark,
     },
   }));
-
-  const rules = [
-    {
-      title: "1. บริษัทขอสงวนสิทธิ์ให้บริการเรือ ดังนี้",
-      items: [
-        "1.1 ให้บริการจำนวนผู้โดยสาร ไม่เกิน 5 ท่านต่อ 1 ลำ และการจอง 1 ครั้ง สามารถจองได้ไม่เกิน 5 ท่าน",
-        "1.2 บริษัทฯ ขอสงวนสิทธิ์ยกเลิกการให้บริการเรือตามวันเวลาที่จองได้ หากวันดังกล่าวมีสภาพอากาศหรือสถานการณ์ที่นำเรือออกแล้วก่อให้เกิดความไม่ปลอดภัยต่อผู้โดยสารและทรัพย์สิน",
-        "1.3 บริษัทฯ ขอสงวนสิทธิ์เปลี่ยนแปลงเส้นทางทั้งจุดเริ่มต้นและจุดสิ้นสุด หากพบสภาพอากาศแปรปรวน",
-        "1.4 หากผู้โดยสารถึงท่าเรือช้ากว่าเวลาที่นัดหมาย ผู้โดยสารจะต้องรอรอบเรือว่างในรอบถัดไป",
-        "1.5 ไม่สามารถกำหนดที่นั่งบนเรือได้ ขึ้นอยู่กับลูกค้าที่เดินทางถึงท่าเรือและลงเรือก่อน",
-        "1.6 ไม่มีจุดแวะพัก และไม่สามารถขอลงระหว่างทางได้"
-      ]
-    },
-    {
-      title: "2. ลูกค้าต้องปฏิบัติตามกฎและระเบียบของบริษัท ขณะใช้บริการเรือ และบริษัทไม่อนุญาตให้ลูกค้า",
-      items: [
-        "2.1 พกพาอาวุธ และ/หรือ ของมีคม",
-        "2.2 สูบบุหรี่ ดื่มสุรา เสพสิ่งเสพติดหรือนำสิ่งผิดกฎหมายขึ้นเรือ",
-        "2.3 จุดไฟ หรือกระทำการใดๆที่ก่อให้เกิดประกายไฟ",
-        "2.4 นำสัตว์เลี้ยงขึ้นบนเรือ",
-        "2.5 นำอาหารหรือทำอาหารบนเรือ",
-        "2.6 ทิ้งขยะลงแม่น้ำ",
-        "2.7 ตกปลา",
-        "2.8 ห้ามนำอาหารและเครื่องดื่มจากร้านค้าภายนอก เข้ามารับประทานอาหารบนเรือ"
-      ]
-    },
-    {
-      title: "3. เพื่อความปลอดภัยขณะใช้บริการเรือ ผู้โดยสารต้องปฏิบัติ ดังนี้",
-      items: [
-        "3.1 ผู้โดยสารไม่ควรใส่รองเท้าส้นสูง ขณะลงเรือและขึ้นฝั่ง (สามารถใส่บนเรือได้)",
-        "3.2 ไม่แนะนำให้ผู้โดยสารมีครรภ์หรือผู้ป่วยที่ไม่สามารถเดินหรือเคลื่อนที่ได้ด้วยตนเอง เช่น ผู้ป่วยเข้าเฝือก หรือรถเข็นนั่ง เป็นต้น ใช้บริการเรือ",
-        "3.3 สำหรับผู้โดยสารเด็ก ต้องมีอายุตั้งแต่ 4 ปี ขึ้นไป สามารถรับบริการเรือได้",
-        "3.4 การขึ้นหรือลงเรือ ผู้โดยสารต้องรอให้เรือเข้าเทียบท่าเรือและเรือจอดสนิทก่อน",
-        "3.5 ผู้โดยสารทุกท่านต้องสวมเสื้อชูชีพตลอดเวลาที่ใช้บริการเรือ",
-        "3.6 ผู้โดยสารต้องปฏิบัติตามคำสั่งของพนักงานขับเรือและปฏิบัติตามกฎหมายที่เกี่ยวกับการเดินเรือ"
-      ]
-    }, {
-      title: "4. กรณีอุปกรณ์หรือตัวเรือได้รับเกิดความเสียหายอันเกิดจากผู้โดยสารไม่ปฏิบัติและเงื่อนไขในการใช้บริการเรือ บริษัทจะคิดค่าเสียหายตามจริงและผู้โดยสารต้องรับผิดชอบความเสียหายที่เกิดขึ้นทั้งหมด",
-      items: [
-
-      ]
-    }, {
-      title: "5. บริษัทจะไม่รับผิดชอบต่อความเสียหาย หรือการสูญหายใดๆ ต่อทรัพย์สินของผู้โดยสาร",
-      items: [
-
-      ]
-    },
-    {
-      title: "6. บริษัทขอสงวนสิทธิ์ในการเปลี่ยนแปลง แก้ไขข้อปฏิบัติและเงื่อนไขส่วนใดส่วนหนึ่งและ/หรือทั้งหมดในการใช้บริการเรือ โดยไม่ต้องแจ้งให้ทราบล่วงหน้า",
-      items: [
-
-      ]
-    }
-  ];
 
   const handleCustomerText = () => {
     if (disable) {
@@ -555,7 +502,7 @@ const BookingView = () => {
                         <Typography sx={{ mt: 2, color: 'black', fontSize: '18px', fontWeight: 'bold' }}>
                           ข้อปฏิบัติและเงื่อนไขในการใช้บริการเรือ:
                         </Typography>
-                        {rules.map((section, index) => (
+                        {Rules.map((section, index) => (
                           <React.Fragment key={index}>
                             <Typography gutterBottom sx={{ mt: 2, color: 'black', fontSize: '16px', fontWeight: 'bold' }}>
                               {section.title}
