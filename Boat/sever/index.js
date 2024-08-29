@@ -164,7 +164,7 @@ app.get('/getCount/:date/:time', (req, res) => {
  */
 app.post('/addTicketboat', (req, res) => {
   const { id, date, time, adults, children, total_people, total_price, customer_name, email, tel,creat_date } = req.body;
-  const status = "เสร็จสิ้น"
+  const status = "รอชำระเงิน"
   const sql = `
     INSERT INTO ticketboat (id, date, time, adults, children, total_people, total_price, customer_name, email, tel, status,creat_date)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?)
@@ -205,8 +205,8 @@ const transporter = nodemailer.createTransport({
   service: 'gmail',
   secure: false,
   auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS 
+    user: "poochit.sk@gmail.com",
+    pass: "xvhofxlslhyajajm"
   }
 });
 

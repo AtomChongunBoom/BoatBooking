@@ -12,25 +12,37 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  Card
+  useMediaQuery,
+  List,
+  ListItem,
+  styled
 } from '@mui/material';
+import {
+  LightbulbOutlined,
+  TrendingUp,
+  PhotoCamera,
+  Dashboard,
+  Campaign
+} from '@mui/icons-material';
 import Swal from 'sweetalert2';
 import { IoMdPerson } from "react-icons/io";
 import { FaSadTear } from 'react-icons/fa';
 import { MdCancel } from "react-icons/md";
 import { BsCheckCircleFill } from "react-icons/bs";
 import { useTheme } from '@mui/material/styles';
-import { LocalizationProvider, StaticDatePicker } from '@mui/x-date-pickers';
+import { LocalizationProvider, StaticDatePicker, MobileDatePicker } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
 import CustomStepper from '../component/timeline';
 import { format } from 'date-fns';
 import axios from 'axios';
+import BoatBookingLanding from './landingPage';
 
 const BookingView = () => {
 
   const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [selectedTime, setSelectedTime] = useState(null);
@@ -42,6 +54,16 @@ const BookingView = () => {
   const [disable, setDisable] = useState(false);
 
   const DefaultDate = new Date();
+
+
+
+  const subscriptionItems = [
+    { icon: <LightbulbOutlined />, text: "A weekly dose of handy design tips and Canva updates" },
+    { icon: <TrendingUp />, text: "Top Trending Templates" },
+    { icon: <PhotoCamera />, text: "Special content from our photographers, illustrators and other creators" },
+    { icon: <Dashboard />, text: "Recommended templates just for you" },
+    { icon: <Campaign />, text: "Canva promotions and marketing" },
+  ];
 
   const timeSlots = ['9:00 - 10:30', '10:00 - 11:30', '11:00 - 12:30', '12:00 - 13:30', '13:00 - 14:30', '13:30 - 15:00'];
 
@@ -141,12 +163,20 @@ const BookingView = () => {
       return;
     }
 
-    if (children > 0 && adults <= 0) {
+    if (children >= 0 && adults <= 0) {
       setOpenDialog(false);
       Swal.fire({
         icon: 'error',
         title: 'เกิดข้อผิดพลาด',
         text: 'จำนวนผู้โดยสาร "ผู้ใหญ่" น้อยเกินกำหนด'
+      });
+      return;
+    }else if(children == 0 && adults == 0){
+      setOpenDialog(false);
+      Swal.fire({
+        icon: 'error',
+        title: 'เกิดข้อผิดพลาด',
+        text: 'กรุณาระบุผู้โดยสาร'
       });
       return;
     }
@@ -233,6 +263,80 @@ const BookingView = () => {
     }
   };
 
+  const ScrollableContent = styled(Box)(({ theme }) => ({
+    height: '70vh',
+    overflowY: 'auto',
+    padding: theme.spacing(2),
+    '&::-webkit-scrollbar': {
+      width: '8px',
+    },
+    '&::-webkit-scrollbar-track': {
+      background: '#f1f1f1',
+      borderRadius: '4px',
+    },
+    '&::-webkit-scrollbar-thumb': {
+      background: theme.palette.primary.main,
+      borderRadius: '4px',
+    },
+    '&::-webkit-scrollbar-thumb:hover': {
+      background: theme.palette.primary.dark,
+    },
+  }));
+
+  const rules = [
+    {
+      title: "1. บริษัทขอสงวนสิทธิ์ให้บริการเรือ ดังนี้",
+      items: [
+        "1.1 ให้บริการจำนวนผู้โดยสาร ไม่เกิน 5 ท่านต่อ 1 ลำ และการจอง 1 ครั้ง สามารถจองได้ไม่เกิน 5 ท่าน",
+        "1.2 บริษัทฯ ขอสงวนสิทธิ์ยกเลิกการให้บริการเรือตามวันเวลาที่จองได้ หากวันดังกล่าวมีสภาพอากาศหรือสถานการณ์ที่นำเรือออกแล้วก่อให้เกิดความไม่ปลอดภัยต่อผู้โดยสารและทรัพย์สิน",
+        "1.3 บริษัทฯ ขอสงวนสิทธิ์เปลี่ยนแปลงเส้นทางทั้งจุดเริ่มต้นและจุดสิ้นสุด หากพบสภาพอากาศแปรปรวน",
+        "1.4 หากผู้โดยสารถึงท่าเรือช้ากว่าเวลาที่นัดหมาย ผู้โดยสารจะต้องรอรอบเรือว่างในรอบถัดไป",
+        "1.5 ไม่สามารถกำหนดที่นั่งบนเรือได้ ขึ้นอยู่กับลูกค้าที่เดินทางถึงท่าเรือและลงเรือก่อน",
+        "1.6 ไม่มีจุดแวะพัก และไม่สามารถขอลงระหว่างทางได้"
+      ]
+    },
+    {
+      title: "2. ลูกค้าต้องปฏิบัติตามกฎและระเบียบของบริษัท ขณะใช้บริการเรือ และบริษัทไม่อนุญาตให้ลูกค้า",
+      items: [
+        "2.1 พกพาอาวุธ และ/หรือ ของมีคม",
+        "2.2 สูบบุหรี่ ดื่มสุรา เสพสิ่งเสพติดหรือนำสิ่งผิดกฎหมายขึ้นเรือ",
+        "2.3 จุดไฟ หรือกระทำการใดๆที่ก่อให้เกิดประกายไฟ",
+        "2.4 นำสัตว์เลี้ยงขึ้นบนเรือ",
+        "2.5 นำอาหารหรือทำอาหารบนเรือ",
+        "2.6 ทิ้งขยะลงแม่น้ำ",
+        "2.7 ตกปลา",
+        "2.8 ห้ามนำอาหารและเครื่องดื่มจากร้านค้าภายนอก เข้ามารับประทานอาหารบนเรือ"
+      ]
+    },
+    {
+      title: "3. เพื่อความปลอดภัยขณะใช้บริการเรือ ผู้โดยสารต้องปฏิบัติ ดังนี้",
+      items: [
+        "3.1 ผู้โดยสารไม่ควรใส่รองเท้าส้นสูง ขณะลงเรือและขึ้นฝั่ง (สามารถใส่บนเรือได้)",
+        "3.2 ไม่แนะนำให้ผู้โดยสารมีครรภ์หรือผู้ป่วยที่ไม่สามารถเดินหรือเคลื่อนที่ได้ด้วยตนเอง เช่น ผู้ป่วยเข้าเฝือก หรือรถเข็นนั่ง เป็นต้น ใช้บริการเรือ",
+        "3.3 สำหรับผู้โดยสารเด็ก ต้องมีอายุตั้งแต่ 4 ปี ขึ้นไป สามารถรับบริการเรือได้",
+        "3.4 การขึ้นหรือลงเรือ ผู้โดยสารต้องรอให้เรือเข้าเทียบท่าเรือและเรือจอดสนิทก่อน",
+        "3.5 ผู้โดยสารทุกท่านต้องสวมเสื้อชูชีพตลอดเวลาที่ใช้บริการเรือ",
+        "3.6 ผู้โดยสารต้องปฏิบัติตามคำสั่งของพนักงานขับเรือและปฏิบัติตามกฎหมายที่เกี่ยวกับการเดินเรือ"
+      ]
+    }, {
+      title: "4. กรณีอุปกรณ์หรือตัวเรือได้รับเกิดความเสียหายอันเกิดจากผู้โดยสารไม่ปฏิบัติและเงื่อนไขในการใช้บริการเรือ บริษัทจะคิดค่าเสียหายตามจริงและผู้โดยสารต้องรับผิดชอบความเสียหายที่เกิดขึ้นทั้งหมด",
+      items: [
+
+      ]
+    }, {
+      title: "5. บริษัทจะไม่รับผิดชอบต่อความเสียหาย หรือการสูญหายใดๆ ต่อทรัพย์สินของผู้โดยสาร",
+      items: [
+
+      ]
+    },
+    {
+      title: "6. บริษัทขอสงวนสิทธิ์ในการเปลี่ยนแปลง แก้ไขข้อปฏิบัติและเงื่อนไขส่วนใดส่วนหนึ่งและ/หรือทั้งหมดในการใช้บริการเรือ โดยไม่ต้องแจ้งให้ทราบล่วงหน้า",
+      items: [
+
+      ]
+    }
+  ];
+
   const handleCustomerText = () => {
     if (disable) {
       // return (
@@ -284,178 +388,312 @@ const BookingView = () => {
   }
 
   return (
-    <Box
-      sx={{
-        height: '100vh',
-        width: '100vw',
-        backgroundImage: `
-          linear-gradient(to top, rgba(255, 255, 255, 255) 40%, rgba(0, 0, 0, 0) 100%),
+    <Box>
+      <Box
+        sx={{
+          minHeight: '100vh',
+          width: '100%',
+          backgroundImage: `
+          linear-gradient(to top, rgba(255, 255, 255, 255) 30%, rgba(0, 0, 0, 0) 100%),
           url(https://resource.nationtv.tv/uploads/images/md/2021/09/iZZnJJkBL2Sf64HoM8b5.jpg?x-image-process=style/lg)
         `,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat',
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-      }}
-    >
-      <Box sx={{ bgcolor: 'white', opacity: '90%', height: '64vh', borderRadius: 3, width: '70%' }}>
-        <CustomStepper currentStep={step - 1} />
-        <LocalizationProvider dateAdapter={AdapterDateFns} sx={{ width: '100%' }}>
-          <Container maxWidth="lg" sx={{ mt: 4, backgroundClip: 'white', opacity: '100%', zIndex: 1 }}>
-            <Paper elevation={3} sx={{ mt: 3, p: 1, width: '100%' }}>
-              <Grid container spacing={3}>
-                <Grid item xs={12} md={4} >
-                  <StaticDatePicker
-                    displayStaticWrapperAs="desktop"
-                    value={selectedDate}
-                    minDate={DefaultDate}
-                    onChange={(newValue) => handlePickTime(newValue)}
-                    renderInput={(params) => <TextField {...params} />}
-                  />
-                </Grid>
-                <Grid item xs={12} md={4} >
-                  <Typography variant="h6" gutterBottom>เลือกรอบเวลา</Typography>
-                  <Grid container spacing={1}>
-                    {timeSlots.map((time) => (
-                      <Grid item xs={6} key={time}>
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          padding: isMobile ? theme.spacing(2) : 0,
+        }}
+      >
+        <Box sx={{
+         position: 'relative',
+         minHeight: isMobile ? 'auto' : '64vh',
+         borderRadius: 3,
+         width: isMobile ? '100%' : '70%',
+         padding: theme.spacing(2),
+         '&::before': {
+           content: '""',
+           position: 'absolute',
+           top: 0,
+           right: 0,
+           bottom: 0,
+           left: 0,
+           backgroundColor: 'white',
+           opacity: 0.5,
+           borderRadius: 'inherit',
+         }
+        }}>
+          
+          <Box sx={{ position: 'relative', zIndex: 1}}>
+          <CustomStepper currentStep={step - 1} />
+          </Box>
+          <LocalizationProvider dateAdapter={AdapterDateFns}>
+            <Container maxWidth="lg"
+              sx={{
+                mt: 1,
+                backgroundClip: 'white',
+                opacity: '1',
+                position: 'relative', zIndex: 1
+              }}>
+              <Paper elevation={3} sx={{ mt: 3, p: 1, width: '100%', margin: 0 }}>
+                <Grid container spacing={3}>
+                  <Grid item xs={12} md={4}>
+                    {isMobile ? (
+                      <MobileDatePicker
+
+                        label="Select Date"
+                        value={selectedDate}
+                        minDate={DefaultDate}
+                        onChange={(newValue) => handlePickTime(newValue)}
+                        renderInput={(params) => <TextField {...params} fullWidth />}
+                      />
+                    ) : (
+                      <StaticDatePicker
+                        displayStaticWrapperAs="desktop"
+                        value={selectedDate}
+                        minDate={DefaultDate}
+                        onChange={(newValue) => handlePickTime(newValue)}
+                        renderInput={(params) => <TextField {...params} />}
+                      />
+                    )}
+                  </Grid>
+                  <Grid item xs={12} md={4}>
+                    <Typography variant="h6" gutterBottom>เลือกรอบเวลา</Typography>
+                    <Grid container spacing={1}>
+                      {timeSlots.map((time) => (
+                        <Grid item xs={6} key={time}>
+                          <Button
+                            fullWidth
+                            variant={selectedTime === time ? "contained" : "outlined"}
+                            onClick={() => handleTimeSelect(time)}
+                            sx={{ borderRadius: 4 }}
+                          >
+                            {time}
+                          </Button>
+                        </Grid>
+                      ))}
+                    </Grid>
+                  </Grid>
+                  <Grid item xs={12} md={4}>
+                    {handleCustomerText()}
+                    {disable && (
+                      <Box sx={{ padding: 1 }}>
+                        <Typography variant="h6" gutterBottom>จำนวนผู้เดินทาง</Typography>
+                        <Box sx={{ mb: 2 }}>
+                          <Typography>ผู้ใหญ่ (THB {adultPrice})</Typography>
+                          <Box display="flex" alignItems="center">
+                            <Button onClick={(e) => handleAdultsMinus(e)} sx={{ width: '45px', height: '50px' }}>
+                              <RemoveIcon />
+                            </Button>
+                            <Typography sx={{ mx: 2 }}>{adults}</Typography>
+                            <Button onClick={(e) => handleAdultsAdd(e)}>
+                              <AddIcon />
+                            </Button>
+                          </Box>
+                        </Box>
+                        <Box sx={{ mb: 2 }}>
+                          <Box sx={{ display: 'flex', justifyContent: 'end' }}>
+                            <Typography sx={{ color: 'red', fontSize: '12px' }}>* ต้องมีผู้ใหญ่อย่างน้อย 1 คน</Typography>
+                          </Box>
+                          <Typography>เด็ก (THB {childPrice})</Typography>
+                          <Box display="flex" alignItems="center">
+                            <Button onClick={(e) => handleChildrenMinus(e)}>
+                              <RemoveIcon />
+                            </Button>
+                            <Typography sx={{ mx: 2 }}>{children}</Typography>
+                            <Button onClick={(e) => handleChildrenAdd(e)}>
+                              <AddIcon />
+                            </Button>
+                          </Box>
+                        </Box>
+                        <Typography variant="h6" align="right">ยอดรวม: {totalPrice.toFixed(2)} บาท</Typography>
                         <Button
                           fullWidth
-                          variant={selectedTime === time ? "contained" : "outlined"}
-                          onClick={() => handleTimeSelect(time)}
-                          sx={{ borderRadius: 4 }}
+                          variant="contained"
+                          color="primary"
+                          size="large"
+                          onClick={handleBooking}
+                          sx={{ mt: 2 }}
                         >
-                          {time}
+                          ชำระเงิน
                         </Button>
-                      </Grid>
-                    ))}
+                      </Box>
+                    )}
+                    {!disable && (
+                      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%', height: '80%' }}>
+                        <FaSadTear
+                          color="#1E90FF"
+                          size={100}
+                        />
+                      </Box>
+                    )}
                   </Grid>
                 </Grid>
-                <Grid item xs={12} md={4} p={4}>
-                  {handleCustomerText()}
-                  {disable && (<Box sx={{ padding: 1 }}>
-                    <Typography variant="h6" gutterBottom>จำนวนผู้เดินทาง</Typography>
-                    <Box sx={{ mb: 2 }}>
-                      <Typography>ผู้ใหญ่ (THB {adultPrice})</Typography>
-                      <Box display="flex" alignItems="center">
-                        <Button onClick={(e) => handleAdultsMinus(e)} sx={{width:'45px',height:'50px'}}>
-                          <RemoveIcon/>
-                        </Button>
-                        <Typography sx={{ mx: 2 }}>{adults}</Typography>
-                        <Button onClick={(e) => handleAdultsAdd(e)}>
-                          <AddIcon />
-                        </Button>
-                      </Box>
-                    </Box>
-                    <Box sx={{ mb: 2 }}>
-                      <Box sx={{display:'flex',justifyContent:'end'}}>
-                        <Typography sx={{ color: 'red', fontSize: '12px' }}>* ต้องมีผู้ใหญ่อย่างน้อย 1 คน</Typography>
-                      </Box>
-                      <Typography>เด็ก (THB {childPrice})</Typography>
-                      <Box display="flex" alignItems="center">
-                        <Button onClick={(e) => handleChildrenMinus(e)}>
-                          <RemoveIcon />
-                        </Button>
-                        <Typography sx={{ mx: 2 }}>{children}</Typography>
-                        <Button onClick={(e) => handleChildrenAdd(e)}>
-                          <AddIcon />
-                        </Button>
-                      </Box>
-                    </Box>
-                    <Typography variant="h6" align="right">ยอดรวม: {totalPrice.toFixed(2)} บาท</Typography>
-                    <Button
-                      fullWidth
-                      variant="contained"
-                      color="primary"
-                      size="large"
-                      onClick={handleBooking}
-                      sx={{ mt: 2 }}
-                    >
-                      ชำระเงิน
-                    </Button>
-                  </Box>)}
-                  {!disable && (
-                    <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%', height: '80%' }}>
-                      <FaSadTear
-                        color="#1E90FF"
-                        size={100} // Adjust the size as needed
-                      />
-                    </Box>
-                  )}
-                </Grid>
-              </Grid>
-            </Paper>
+              </Paper>
 
-            <Dialog open={openDialog} onClose={() => setOpenDialog(false)} maxWidth="sm" fullWidth>
-              <DialogTitle style={{ backgroundColor: theme.palette.primary.main, color: theme.palette.common.white }}>
+              <Dialog
+                open={openDialog}
+                onClose={() => setOpenDialog(false)}
+                maxWidth="lg"
+                fullWidth
+                fullScreen={isMobile}
+              >
+                <DialogTitle
+                  sx={{
+                    backgroundColor: theme.palette.primary.main,
+                    color: theme.palette.common.white,
+                    py: 2,
+                  }}
+                >
                   รายละเอียดการจอง
-              </DialogTitle>
-              <Box >
-                <Typography>
-                  ข้อกำหนด
-                </Typography>
-              </Box>
-              <DialogContent dividers style={{ padding: theme.spacing(3), backgroundColor: theme.palette.background.default }}>
-                <Typography variant="body1" gutterBottom>วันที่: {selectedDate.toLocaleDateString()}</Typography>
-                <Typography variant="body1" gutterBottom>เวลา: {selectedTime}</Typography>
-                <Typography variant="body1" gutterBottom>ผู้ใหญ่: {adults} คน</Typography>
-                <Typography variant="body1" gutterBottom>เด็ก: {children} คน</Typography>
-
-                <Typography variant="h6" color="primary" gutterBottom sx={{ display: 'flex', justifyContent: 'end' }} >ยอดรวม: {totalPrice.toFixed(2)} บาท</Typography>
-
-                <TextField
-                  margin="normal"
-                  fullWidth
-                  label="ชื่อ"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  variant="outlined"
-                  color="primary"
-                />
-                <TextField
-                  margin="normal"
-                  fullWidth
-                  label="อีเมล"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  variant="outlined"
-                  color="primary"
-                />
-                <TextField
-                  margin="normal"
-                  fullWidth
-                  label="เบอร์โทรศัพท์"
-                  inputProps={{
-                    inputMode: 'numeric',  // สำหรับแสดงคีย์บอร์ดตัวเลขบนมือถือ
-                    pattern: '[0-9]*',     // สำหรับอนุญาตเฉพาะตัวเลข
-                  }}
-                  type="tel"
-                  value={tel}
-                  onChange={(e) => {
-                    const value = e.target.value;
-                    if (/^\d*$/.test(value)) {
-                      setTel(value);
-                    }
-                  }}
-                  variant="outlined"
-                  color="primary"
-                />
-              </DialogContent>
-              <DialogActions style={{ padding: theme.spacing(2) }}>
-                <Button onClick={() => setOpenDialog(false)} sx={{}}>
-                  ยกเลิก
-                </Button>
-                <Button variant="contained" color="primary" onClick={(e) => handleSubmitted(e)}>
-                  ยืนยันการจอง
-                </Button>
-              </DialogActions>
-            </Dialog>
-          </Container>
-        </LocalizationProvider>
+                </DialogTitle>
+                <DialogContent dividers sx={{ p: 0 }}>
+                  <Grid container>
+                    <Grid item xs={12} md={6}>
+                      <ScrollableContent>
+                        <Typography sx={{ mt: 2, color: 'black', fontSize: '18px', fontWeight: 'bold' }}>
+                          ข้อปฏิบัติและเงื่อนไขในการใช้บริการเรือ:
+                        </Typography>
+                        {rules.map((section, index) => (
+                          <React.Fragment key={index}>
+                            <Typography gutterBottom sx={{ mt: 2, color: 'black', fontSize: '16px', fontWeight: 'bold' }}>
+                              {section.title}
+                            </Typography>
+                            <List>
+                              {section.items.map((item, itemIndex) => (
+                                <ListItem key={itemIndex}>
+                                  <Typography sx={{ fontSize: '14px' }}>{item}</Typography>
+                                </ListItem>
+                              ))}
+                            </List>
+                          </React.Fragment>
+                        ))}
+                      </ScrollableContent>
+                    </Grid>
+                    <Grid item xs={12} md={6}>
+                      <Box sx={{ p: 3, backgroundColor: 'white', height: isMobile ? '100%' : '70vh', }}>
+                        <Typography variant="h6" gutterBottom>
+                          ข้อมูลการจอง
+                        </Typography>
+                        <Grid container spacing={2}>
+                          <Grid item xs={6}>
+                            <Typography variant="body2">วันที่:</Typography>
+                          </Grid>
+                          <Grid item xs={6}>
+                            <Typography variant="body2">{selectedDate.toLocaleDateString()}</Typography>
+                          </Grid>
+                          <Grid item xs={6}>
+                            <Typography variant="body2">เวลา:</Typography>
+                          </Grid>
+                          <Grid item xs={6}>
+                            <Typography variant="body2">{selectedTime}</Typography>
+                          </Grid>
+                          <Grid item xs={6}>
+                            <Typography variant="body2">ผู้ใหญ่:</Typography>
+                          </Grid>
+                          <Grid item xs={6}>
+                            <Typography variant="body2">{adults} คน</Typography>
+                          </Grid>
+                          <Grid item xs={6}>
+                            <Typography variant="body2">เด็ก:</Typography>
+                          </Grid>
+                          <Grid item xs={6}>
+                            <Typography variant="body2">{children} คน</Typography>
+                          </Grid>
+                        </Grid>
+                        <Typography variant="h6" color="primary" align="right" sx={{ mt: 2, mb: 3 }}>
+                          ยอดรวม: {totalPrice.toFixed(2)} บาท
+                        </Typography>
+                        <TextField
+                          fullWidth
+                          label="ชื่อ"
+                          value={name}
+                          onChange={(e) => setName(e.target.value)}
+                          margin="normal"
+                          variant="outlined"
+                        />
+                        <TextField
+                          fullWidth
+                          label="อีเมล"
+                          type="email"
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                          margin="normal"
+                          variant="outlined"
+                        />
+                        <TextField
+                          fullWidth
+                          label="เบอร์โทรศัพท์"
+                          type="tel"
+                          value={tel}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            if (/^\d*$/.test(value)) {
+                              setTel(value);
+                            }
+                          }}
+                          margin="normal"
+                          variant="outlined"
+                          inputProps={{
+                            inputMode: 'numeric',
+                            pattern: '[0-9]*',
+                          }}
+                        />
+                      </Box>
+                    </Grid>
+                  </Grid>
+                </DialogContent>
+                <DialogActions sx={{ justifyContent: 'flex-end', p: 2 }}>
+                  <Button onClick={() => setOpenDialog(false)} sx={{ mr: 1 }}>
+                    ยกเลิก
+                  </Button>
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    onClick={handleSubmitted}
+                  >
+                    ยืนยันการจอง
+                  </Button>
+                </DialogActions>
+              </Dialog>
+              {/* <Dialog open={openDialog} onClose={() => setOpenDialog(false)}  maxWidth="sm" fullWidth>
+                <DialogTitle>
+                  <Typography variant="h6">Can we keep in touch?</Typography>
+                </DialogTitle>
+                <DialogContent>
+                  <Typography variant="body1" gutterBottom>
+                    Subscribe to get emails and messages from Canva about all these good things (you can unsubscribe anytime in Email Preferences):
+                  </Typography>
+                  <List>
+                    {[
+                      { icon: <LightbulbOutlined />, text: "A weekly dose of handy design tips and Canva updates" },
+                      { icon: <TrendingUp />, text: "Top Trending Templates" },
+                      { icon: <PhotoCamera />, text: "Special content from our photographers, illustrators and other creators" },
+                      { icon: <Dashboard />, text: "Recommended templates just for you" },
+                      { icon: <Campaign />, text: "Canva promotions and marketing" },
+                    ].map((item, index) => (
+                      <ListItem key={index}>
+                        <ListItemIcon>{item.icon}</ListItemIcon>
+                        <ListItemText primary={item.text} />
+                      </ListItem>
+                    ))}
+                  </List>
+                </DialogContent>
+                <DialogActions>
+                  <Button onClick={() => setOpenDialog(false)} color="primary" variant="contained" fullWidth>
+                    Yes, subscribe me
+                  </Button>
+                  <Button onClick={() => setOpenDialog(false)} color="inherit" fullWidth>
+                    Not now
+                  </Button>
+                </DialogActions>
+              </Dialog> */}
+            </Container>
+          </LocalizationProvider>
+        </Box>
       </Box>
-      
+      <BoatBookingLanding />
     </Box>
   );
 };

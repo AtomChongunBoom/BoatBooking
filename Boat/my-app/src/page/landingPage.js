@@ -41,12 +41,20 @@ const BoatBookingLanding = () => {
     const handleClose = () => {
         setOpen(false);
     };
+
+    const scrollToTop = () => {
+        window.scrollTo({
+          top: 0,
+          behavior: 'smooth' // จะเลื่อนอย่างนุ่มนวล
+        });
+      };
+
     return (
         <Box sx={{ flexGrow: 1 }}>
 
             <Container >
                 {/* Hero Section */}
-                <Box
+                {/* <Box
                     sx={{
                         bgcolor: 'white',
                         color: 'primary.contrastText',
@@ -86,6 +94,86 @@ const BoatBookingLanding = () => {
                         </Grid>
                     </Grid>
                 </Box>
+                <Box
+                    sx={{
+                        bgcolor: 'white',
+                        color: 'primary.contrastText',
+                        py: 8,
+                        mb: 4,
+                        borderRadius: 2,
+                        mt: 4,
+                        padding: 4,
+
+                    }}
+                >
+                    <Grid container spacing={4} alignItems="center">
+                        <Grid item xs={12} md={6}>
+                            <Typography variant="h3" component="h1" gutterBottom sx={{ color: '	#191970' }}>
+                                เปิดประสบการณ์ที่ท่องเที่ยว
+                                แลนด์มาร์คแห่งใหม่ ริมน้ำอยุธยา
+                            </Typography>
+                            <Typography variant="h9" paragraph sx={{ color: 'black' }}>
+                                สัมผัสการท่องเที่ยวแบบเช้าเย็นกลับ เดินทาง-กิน-ดื่ม-เที่ยว ครบในที่เดียว
+                                สวยงามและพิเศษแตกต่างจากประสบการณ์เที่ยวอยุธยาที่ผ่านมา
+                                ที่มาพร้อมบริการที่หลากหลายจาก ทรู ลีสซิ่ง
+                            </Typography>
+                        </Grid>
+                        <Grid item xs={12} md={6}>
+                            <Box
+                                component="img"
+                                sx={{
+                                    width: '100%',
+                                    height: 'auto',
+                                    maxHeight: 400,
+                                    objectFit: 'cover',
+                                    borderRadius: 2,
+                                }}
+                                alt="Luxury yacht"
+                                src="https://d1aeyn46ohn8t4.cloudfront.net/eyJidWNrZXQiOiJjbXMucHJvZC50cnVlLWxlYXNpbmciLCJrZXkiOiJ0cnVlLWxlYXNpbmcvdjEvbWVkaWEvMTcxOTg4NTA1NjAyMCIsImVkaXRzIjp7InJlc2l6ZSI6eyJ3aWR0aCI6MjAwMCwid2l0aG91dEVubGFyZ2VtZW50Ijp0cnVlfX19"
+                            />
+                        </Grid>
+                    </Grid>
+                </Box>
+                <Box
+                    sx={{
+                        bgcolor: 'white',
+                        color: 'primary.contrastText',
+                        py: 8,
+                        mb: 4,
+                        borderRadius: 2,
+                        mt: 4,
+                        padding: 4,
+
+                    }}
+                >
+                    <Grid container spacing={4} alignItems="center">
+                        <Grid item xs={12} md={6}>
+                            <Box
+                                component="img"
+                                sx={{
+                                    width: '100%',
+                                    height: '100%',
+                                    maxHeight: 400,
+                                    objectFit: 'cover',
+                                    borderRadius: 2,
+                                }}
+                                alt="Luxury yacht"
+                                src="https://s3-ap-southeast-1.amazonaws.com/cms.prod.true-leasing/true-leasing/v1/media/1673323607995"
+                            />
+                        </Grid>
+                        <Grid item xs={12} md={6}>
+                            <Typography variant="h3" component="h1" gutterBottom sx={{ color: '	#191970' }}>
+                                เรือทรู ลีสซิ่ง
+                            </Typography>
+                            <Typography variant="h9" paragraph sx={{ color: 'black' }}>
+                                ล่องเรือสุดเอ็กซ์คลูซีฟ เริ่มต้นด้วยการชมคอลเลคชั่นเรือคลาสสิกที่ทรู ลีสซิ่ง อยุธยา ก่อนลงเรือจากท่าเรือที่ตกแต่งสไตล์ท่าเรือจากทะเลสาบอิตาลีแห่งเดียวในไทย ล่องชมวัดเก่าแก่ เจดีย์ โบราณสถาน ที่เต็มไปด้วยเรื่องราวทางประวัติศาสตร์ ถ่ายรูปกับวัดไชยวัฒนาราม ที่สวยโดดเด่นตระหง่านริมน้ำ และวัดพุทไธศวรรย์ โดดเด่นด้วยปรางค์ประธานองค์ใหญ่ศิลปะแบบขอมที่ยังสมบูรณ์อยู่เป็นเอกลักษณ์คู่วัด เพลิดเพลินกับการให้อาหารปลา เหมาะสำหรับล่องเรือส่วนตัว รองรับลูกค้าองค์กร และงานอีเว้นท์ต่างๆ
+                            </Typography>
+                        </Grid>
+                    </Grid>
+                </Box> */}
+
+
+
 
                 {/* Booking Form */}
                 {/* <Card sx={{ mb: 4, p: 2 }}>
@@ -276,7 +364,7 @@ const BoatBookingLanding = () => {
                     <Typography variant="h5" component="h2" gutterBottom>
                         พร้อมที่จะออกเดินทางแล้วหรือยัง?
                     </Typography>
-                    <Button variant="contained" color="primary" size="large" startIcon={<FaSailboat />}>
+                    <Button variant="contained" color="primary" size="large" startIcon={<FaSailboat />} onClick={scrollToTop}>
                         จองเรือเลย
                     </Button>
                 </Box>
@@ -287,6 +375,9 @@ const BoatBookingLanding = () => {
                 <Container maxWidth="lg">
                     <Grid container spacing={4} justifyContent="space-evenly">
                         <Grid item xs={12} sm={4}>
+                            <Box>
+                                <img src="https://www.trueleasing.com/wp-content/uploads/2021/07/logo-trueleasing.png" alt="Trueleasing Logo" />
+                            </Box>
                             <Typography variant="h6" color="text.primary" gutterBottom>
                                 เกี่ยวกับเรา
                             </Typography>
@@ -299,13 +390,13 @@ const BoatBookingLanding = () => {
                                 ติดต่อเรา
                             </Typography>
                             <Typography variant="body2" color="text.secondary">
-                                123 ถนนริมทะเล, เมืองท่า 12345
+                                616 ถ. หลวงแพ่ง แขวงทับยาว เขตลาดกระบัง กรุงเทพมหานคร 10520
                             </Typography>
                             <Typography variant="body2" color="text.secondary">
-                                Email: info@boatbooking.com
+                                Email: trueleasing@boatbooking.com
                             </Typography>
                             <Typography variant="body2" color="text.secondary">
-                                โทร: +66 1234 5678
+                                โทร:  02 859 7878
                             </Typography>
                         </Grid>
                         <Grid item xs={12} sm={4}>
@@ -320,7 +411,7 @@ const BoatBookingLanding = () => {
                     <Box mt={5}>
                         <Typography variant="body2" color="text.secondary" align="center">
                             {'Copyright © '}
-                            เช่าเรือสำราญ {new Date().getFullYear()}
+                            trueleasing {new Date().getFullYear()}
                             {'.'}
                         </Typography>
                     </Box>

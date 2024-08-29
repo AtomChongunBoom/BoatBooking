@@ -75,7 +75,7 @@ const CSMTable = () => {
         { field: 'date', headerName: 'Date', width: 130, flex: 1 },
         { field: 'time', headerName: 'Time', width: 130, flex: 1 },
         { field: 'customer_name', headerName: 'Customer Name', width: 200, flex: 1 },
-        { field: 'total_people', headerName: 'Total People', width: 130, flex: 1 },
+        { field: 'total_people', headerName: 'Total People', width: 100, flex: 0.5 },
         {
             field: 'total_price',
             headerName: 'Total Price',
@@ -221,7 +221,7 @@ const CSMTable = () => {
                                 <Typography variant="h6" className="text-blue-800">Total Revenue: ${totalRevenue.toFixed(2)}</Typography>
                             </Grid>
                         </Grid>
-                        <Box className="h-[500px] w-full">
+                        <Box className="h-[250px] w-full">
                             <DataGrid
                                 rows={filteredData}
                                 columns={columns}

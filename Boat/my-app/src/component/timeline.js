@@ -6,13 +6,13 @@ import { MdPeople } from "react-icons/md";
 
 const steps = [
   { label: 'ระบุวันเดินทาง', icon: <IoTime /> },
-  { label: 'เลือกเดินทาง', icon: <FaShip /> },
+  { label: 'เลือกรอบการเดินทาง', icon: <FaShip /> },
   { label: 'ระบุจำนวนผู้โดยสาร', icon: <MdPeople /> },
 ];
 
 function CustomStepper({ currentStep }) {
   return (
-    <Box sx={{ width: '96%', bgcolor: '#ffffff', margin: 4, height: '100px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+    <Box sx={{ width: '96%', margin: 4, height: '100px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       <Stepper alternativeLabel sx={{ width: '100%' }}>
         {steps.map((step, index) => (
           <Step key={step.label} active={index <= currentStep}>
