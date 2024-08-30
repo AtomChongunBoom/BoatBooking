@@ -76,6 +76,8 @@ const CSMTable = () => {
         { field: 'time', headerName: 'Time', width: 130, flex: 1 },
         { field: 'customer_name', headerName: 'Customer Name', width: 200, flex: 1 },
         { field: 'total_people', headerName: 'Total People', width: 100, flex: 0.5 },
+        { field: 'email', headerName: 'Total People', width: 200, flex: 1.5 },
+        { field: 'tel', headerName: 'Total People', width: 200, flex: 1 },
         {
             field: 'total_price',
             headerName: 'Total Price',

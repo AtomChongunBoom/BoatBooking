@@ -54,9 +54,9 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
  *       200:
  *         description: Successful response
  */
-app.get('/getTicketboat',(req, res) => {
+app.get('/getTicketboat', (req, res) => {
   db.query('SELECT * FROM ticketboat ORDER BY creat_date DESC', (err, result) => {
-    if(err) throw err;
+    if (err) throw err;
     res.send(result);
   })
 })
@@ -164,13 +164,13 @@ app.get('/getCount/:date/:time', (req, res) => {
  *         description: Record added successfully
  */
 app.post('/addTicketboat', (req, res) => {
-  const { id, date, time, adults, children, total_people, total_price, customer_name, email, tel,creat_date } = req.body;
-  const status = "รอชำระเงิน"
+  const { id, date, time, adults, children, total_people, total_price, first_name, last_name,email, tel,address,creat_date } = req.body;
+  const status = "เลื่อน"
   const sql = `
-    INSERT INTO ticketboat (id, date, time, adults, children, total_people, total_price, customer_name, email, tel, status,creat_date)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?)
+    INSERT INTO ticketboat (id, date, time, adults, children, total_people, total_price, first_name, last_name,email, tel, address,status,creat_date)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?,?,?)
   `;
-  db.query(sql, [id, date, time, adults, children, total_people, total_price, customer_name, email, tel, status,creat_date], (err, result) => {
+  db.query(sql, [id, date, time, adults, children, total_people, total_price, first_name, last_name,email, tel,address,status,creat_date], (err, result) => {
     if (err) {
       console.error('Database query error:', err);
       return res.status(500).json({ error: 'Database query failed' });
@@ -213,7 +213,6 @@ const transporter = nodemailer.createTransport({
 
 app.post('/send-email', (req, res) => {
   const { email } = req.body; // Destructure email from req.body
-  console.log(email);
 
   if (!email) {
     console.error('Email is required but not provided:', req.body);
@@ -227,7 +226,7 @@ app.post('/send-email', (req, res) => {
   const mailOptions = {
     from: process.env.EMAIL_USER, // Sender address
     to: email,                    // Receiver address
-    subject: "Ticket Wonder Blue", // Subject line
+    subject: "E-Ticket สำหรับการเดินทางเรือของคุณ - [True Lesing / Ayutaya]", // Subject line
     html: htmlFile                // HTML body content
   };
 

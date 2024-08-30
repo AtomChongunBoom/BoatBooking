@@ -1,8 +1,8 @@
 import { BrowserRouter as Router, Route, Routes, Link } from 'react-router-dom';
 import { AppBar, Toolbar, Typography, Button, Container } from '@mui/material';
 import BookingView from './page/Booking/booking_view';
-import CSMTable from './page/Manage/manage_view';
-
+import CSMTable from './page/CSM/manage_view';
+import CandidateBooking from './page/CSM/edit/editBooking_view';
 function App() {
   return (
     <Router>
@@ -22,6 +22,7 @@ function App() {
       <Routes>
         <Route path="/" element={<BookingView />} />
         <Route path="/admin" element={<CSMTable />} />
+        <Route path="/admin/edit" element={<CandidateBooking />} />
       </Routes>
     </Router>
   );

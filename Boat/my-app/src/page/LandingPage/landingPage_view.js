@@ -10,26 +10,59 @@ import {
     CardMedia,
     Box,
     Modal,
+    TextField,
+    aLocationDot,
 } from '@mui/material';
 import { FaSailboat, FaFacebookF, FaInstagram, FaTwitter } from 'react-icons/fa6';
+import { BoatDetailsModal } from '../../component/popUp';
+import { FaMapMarkerAlt, FaCalendarAlt } from 'react-icons/fa';
+
 
 
 const BoatBookingLanding = () => {
 
 
     const boats = [
-        { name: 'โกกนุท', image: 'https://trueleasing.co.th/catalog/asset_image/T-700.jpg', price: 'เรือสวยๆ', details: 'รายละเอียดเพิ่มเติมของเรือโกกนุท' },
-        { name: 'วาริช', image: 'https://trueleasing.co.th/catalog/asset_image/T-154.jpg', price: 'เรือสวยๆ', details: 'รายละเอียดเพิ่มเติมของเรือวาริช' },
-        { name: 'บุษบัน', image: 'https://trueleasing.co.th/catalog/asset_image/_TKP7542_2_.jpg', price: 'เรือสวยๆ', details: 'รายละเอียดเพิ่มเติมของเรือบุษบัน' },
+        {
+            name: 'โกกนุท',
+            image: 'https://trueleasing.co.th/catalog/asset_image/T-700.jpg',
+            price: 'เรือสวยๆ', details: 'รายละเอียดเพิ่มเติมของเรือโกกนุท',
+            model: '32’ Twin Engine Sport',
+            engine: '6.0L Crusader (X2)',
+            woodColor: 'Custom Brown',
+            interiorColor: 'Custom Ivory',
+            hullColor: 'White Waterline'
+        },
+        {
+            name: 'วาริช',
+            image: 'https://trueleasing.co.th/catalog/asset_image/T-154.jpg',
+            price: 'เรือสวยๆ',
+            details: 'รายละเอียดเพิ่มเติมของเรือวาริช',
+            model: '30’ Triple Cockpit Runabout',
+            engine: 'Crusader 8.1L HO',
+            woodColor: 'Traditional Hacker',
+            interiorColor: 'Burgundy',
+            hullColor: 'Burgundy'
+        },
+        {
+            name: 'บุษบัน',
+            image: 'https://trueleasing.co.th/catalog/asset_image/_TKP7542_2_.jpg',
+            price: 'เรือสวยๆ',
+            details: 'รายละเอียดเพิ่มเติมของเรือบุษบัน',
+            model: '30’ Triple Cockpit Runabout',
+            engine: 'Crusader 8.1L HO',
+            woodColor: 'Traditional Hacker',
+            interiorColor: 'Burgundy',
+            hullColor: 'Burgundy'
+        },
     ];
 
     const navigate = useNavigate();
 
     const [open, setOpen] = useState(false);
     const [selectedBoat, setSelectedBoat] = useState(null);
-
-    const handleOpen = (boat) => {
-        setSelectedBoat(boat);
+    const handleOpen = (index) => {
+        setSelectedBoat(boats[index]);
         setOpen(true);
     };
 
@@ -53,7 +86,7 @@ const BoatBookingLanding = () => {
 
             <Container >
                 {/* Hero Section */}
-                {/* <Box
+                <Box
                     sx={{
                         bgcolor: 'white',
                         color: 'primary.contrastText',
@@ -169,54 +202,54 @@ const BoatBookingLanding = () => {
                             </Typography>
                         </Grid>
                     </Grid>
-                </Box> */}
+                </Box>
 
 
 
 
                 {/* Booking Form */}
-                {/* <Card sx={{ mb: 4, p: 2 }}>
-          <CardContent>
-            <Typography variant="h5" component="h2" gutterBottom>
-              จองทริปของคุณ
-            </Typography>
-            <Grid container spacing={2}>
-              <Grid item xs={12} sm={4}>
-                <TextField
-                  fullWidth
-                  label="สถานที่"
-                  variant="outlined"
-                  InputProps={{
-                    startAdornment: <FaLocationDot style={{ marginRight: '8px' }} />,
-                  }}
-                />
-              </Grid>
-              <Grid item xs={12} sm={4}>
-                <TextField
-                  fullWidth
-                  label="วันที่"
-                  variant="outlined"
-                  type="date"
-                  InputLabelProps={{ shrink: true }}
-                  InputProps={{
-                    startAdornment: <FaCalendarDays style={{ marginRight: '8px' }} />,
-                  }}
-                />
-              </Grid>
-              <Grid item xs={12} sm={4}>
-                <Button 
-                  fullWidth 
-                  variant="contained" 
-                  color="primary" 
-                  size="large"
-                  sx={{ height: '56px' }}
-                >
-                  ค้นหา
-                </Button>
-              </Grid>
-            </Grid>
-          </CardContent>
-        </Card> */}
+                <Card sx={{ mb: 4, p: 2 }}>
+                    <CardContent>
+                        <Typography variant="h5" component="h2" gutterBottom>
+                            จองทริปของคุณ
+                        </Typography>
+                        <Grid container spacing={2}>
+                            <Grid item xs={12} sm={4}>
+                                <TextField
+                                    fullWidth
+                                    label="วันที่"
+                                    variant="outlined"
+                                    type="date"
+                                    InputLabelProps={{ shrink: true }}
+                                    InputProps={{
+                                        startAdornment: <FaCalendarAlt style={{ marginRight: '8px' }} />,
+                                    }}
+                                />
+                            </Grid>
+                            <Grid item xs={12} sm={4}>
+                                <TextField
+                                    fullWidth
+                                    label="รอบ"
+                                    variant="outlined"
+                                    InputProps={{
+                                        startAdornment: <FaMapMarkerAlt style={{ marginRight: '8px' }} />,
+                                    }}
+                                />
+                            </Grid>
+                            <Grid item xs={12} sm={4}>
+                                <Button
+                                    fullWidth
+                                    variant="contained"
+                                    color="primary"
+                                    size="large"
+                                    sx={{ height: '56px' }}
+                                >
+                                    ค้นหา
+                                </Button>
+                            </Grid>
+                        </Grid>
+                    </CardContent>
+                </Card>
                 <div>
                     <Typography variant="h4" component="h2" gutterBottom sx={{ mt: 6, mb: 3 }}>
                         เรือของเรา
@@ -242,7 +275,7 @@ const BoatBookingLanding = () => {
                                             variant="outlined"
                                             color="primary"
                                             sx={{ mt: 2 }}
-                                            onClick={() => handleOpen(boat)}
+                                            onClick={() => handleOpen(index)}
                                         >
                                             ดูรายละเอียด
                                         </Button>
@@ -251,7 +284,8 @@ const BoatBookingLanding = () => {
                             </Grid>
                         ))}
                     </Grid>
-                    <Modal
+                    <BoatDetailsModal open={open} handleClose={handleClose} selectedBoat={selectedBoat} />
+                    {/* <Modal
                         open={open}
                         onClose={handleClose}
                         aria-labelledby="boat-details-modal"
@@ -282,7 +316,7 @@ const BoatBookingLanding = () => {
                                 </>
                             )}
                         </Box>
-                    </Modal>
+                    </Modal> */}
                 </div>
 
                 {/* Scenic Views Section */}
@@ -373,7 +407,7 @@ const BoatBookingLanding = () => {
                     <Grid container spacing={4} justifyContent="space-evenly">
                         <Grid item xs={12} sm={4}>
                             <Box>
-                                <img src="https://www.trueleasing.com/wp-content/uploads/2021/07/logo-trueleasing.png" alt="Trueleasing Logo" />
+                                <img src="https://ik.imagekit.io/tvlk/image/imageResource/2023/06/29/1688022859636-852e89a793fd448275fdc71c91824f06.png?tr=q-75" alt="Trueleasing Logo" style={{ height: '50px' }} />
                             </Box>
                             <Typography variant="h6" color="text.primary" gutterBottom>
                                 เกี่ยวกับเรา

@@ -54,7 +54,8 @@ const BookingView = () => {
   const [countPeople, setCountPeople] = useState(0);
   const [tel, setTel] = useState();
   const [disable, setDisable] = useState(false);
-
+  const [visible, setVisible] = useState(false);
+  const [submittingBtn,setSubmittingBtn] = useState(false);
   const DefaultDate = new Date();
 
 
@@ -73,8 +74,10 @@ const BookingView = () => {
   const childPrice = 1000;
   const totalPrice = adults * adultPrice + children * childPrice;
 
-  const [name, setName] = useState('');
+  const [first_name, setFirstname] = useState('');
   const [email, setEmail] = useState('');
+  const [last_name, setLastName] = useState('');
+  const [address, setAddress] = useState('');
 
   const [step, setStep] = useState(1);
 
@@ -90,16 +93,21 @@ const BookingView = () => {
       // Set to step 1 if only the date is selected and no time or people
       setStep(1);
       handleMaxPeople()
+      setVisible(false);
     } else if (selectedDate && selectedTime) {
       // If both date and time are selected
       if (adults === 0 && children === 0) {
         // If no people are selected, move to step 2
         setStep(2);
         handleMaxPeople()
+        setVisible(true);
+        setSubmittingBtn(false);
       } else {
         // If there are people, move to step 3
         setStep(3);
         handleMaxPeople()
+        setVisible(true);
+        setSubmittingBtn(true);
       }
     }
   }, [selectedDate, selectedTime, adults, children, countPeople]);
@@ -119,7 +127,8 @@ const BookingView = () => {
     setAdults(0);
     setChildren(0);
     setTel('');
-    setName('');
+    setFirstname('');
+    setLastName('');
     setEmail('');
     setOpenDialog(false);
   }
@@ -155,7 +164,7 @@ const BookingView = () => {
   };
 
   const handleSubmitted = async () => {
-    if (!name || !email || !tel || !selectedTime) {
+    if (!first_name || !last_name || !address || !email || !tel || !selectedTime) {
       setOpenDialog(false);
       Swal.fire({
         icon: 'error',
@@ -185,6 +194,18 @@ const BookingView = () => {
 
     if (countPeople + (adults + children) < 6) {
       if (children < 4) {
+        setOpenDialog(false);
+        Swal.fire({
+          title: 'กำลังดำเนินการ',
+          text: 'กรุณารอสักครู่...',
+          allowOutsideClick: false,
+          allowEscapeKey: false,
+          showConfirmButton: false,
+          willOpen: () => {
+            Swal.showLoading();
+          }
+        });
+
         try {
           const bookingData = {
             "id": uuidv4(),
@@ -194,17 +215,18 @@ const BookingView = () => {
             "children": children,
             "total_people": adults + children,
             "total_price": totalPrice,
-            'customer_name': name,
+            'first_name': first_name,
+            'last_name': last_name,
             'email': email,
             'tel': tel,
+            'address': address,
             'creat_date': new Date().toISOString()
           };
           console.log(bookingData.creat_date);
           await addTicketboat(bookingData);
-          await SendEmail(bookingData)
+          await SendEmail(bookingData);
 
           setOpenDialog(false);
-
           Swal.fire({
             icon: 'success',
             title: 'สำเร็จ!',
@@ -212,7 +234,6 @@ const BookingView = () => {
           });
         } catch (error) {
           console.error("Error submitting booking:", error);
-
           Swal.fire({
             icon: 'error',
             title: 'เกิดข้อผิดพลาด',
@@ -236,7 +257,7 @@ const BookingView = () => {
       });
       setOpenDialog(false);
     }
-    handleMaxPeople()
+    handleMaxPeople();
   };
 
   const addTicketboat = async (data) => {
@@ -268,7 +289,7 @@ const BookingView = () => {
 
   const ScrollableContent = styled(Box)(({ theme }) => ({
     height: '70vh',
-    overflowY: 'auto',
+    overflowY: isMobile ? 'scroll' : 'auto',
     padding: theme.spacing(2),
     '&::-webkit-scrollbar': {
       width: '8px',
@@ -352,7 +373,7 @@ const BookingView = () => {
           display: 'flex',
           justifyContent: 'center',
           alignItems: 'center',
-          padding: isMobile ? theme.spacing(2) : 0,
+          padding: isMobile ? 0 : theme.spacing(2),
         }}
       >
         <Box sx={{
@@ -360,7 +381,7 @@ const BookingView = () => {
           minHeight: isMobile ? 'auto' : '64vh',
           borderRadius: 3,
           width: isMobile ? '100%' : '70%',
-          padding: theme.spacing(2),
+          padding: isMobile ? 0 : theme.spacing(2),
           '&::before': {
             content: '""',
             position: 'absolute',
@@ -374,18 +395,19 @@ const BookingView = () => {
           }
         }}>
 
-          <Box sx={{ position: 'relative', zIndex: 1 }}>
+          <Box sx={{ position: 'relative', zIndex: 1, width: '96%' }}>
             <CustomStepper currentStep={step - 1} />
           </Box>
           <LocalizationProvider dateAdapter={AdapterDateFns}>
             <Container maxWidth="lg"
               sx={{
                 mt: 1,
+                margin: isMobile ? 0 : 'auto',
                 backgroundClip: 'white',
                 opacity: '1',
                 position: 'relative', zIndex: 1
               }}>
-              <Paper elevation={3} sx={{ mt: 3, p: 1, width: '100%', margin: 0 }}>
+              <Paper elevation={3} sx={{ mt: 3, p: 1, width: '96%', margin: 0 }}>
                 <Grid container spacing={3}>
                   <Grid item xs={12} md={4}>
                     {isMobile ? (
@@ -424,7 +446,7 @@ const BookingView = () => {
                       ))}
                     </Grid>
                   </Grid>
-                  <Grid item xs={12} md={4}>
+                  {visible && (<Grid item xs={12} md={4}>
                     {handleCustomerText()}
                     {disable && (
                       <Box sx={{ padding: 1 }}>
@@ -457,7 +479,7 @@ const BookingView = () => {
                           </Box>
                         </Box>
                         <Typography variant="h6" align="right">ยอดรวม: {totalPrice.toFixed(2)} บาท</Typography>
-                        <Button
+                        { submittingBtn && (<Button
                           fullWidth
                           variant="contained"
                           color="primary"
@@ -466,7 +488,7 @@ const BookingView = () => {
                           sx={{ mt: 2 }}
                         >
                           ชำระเงิน
-                        </Button>
+                        </Button>)}
                       </Box>
                     )}
                     {!disable && (
@@ -477,7 +499,7 @@ const BookingView = () => {
                         />
                       </Box>
                     )}
-                  </Grid>
+                  </Grid>)}
                 </Grid>
               </Paper>
 
@@ -499,7 +521,7 @@ const BookingView = () => {
                 </DialogTitle>
                 <DialogContent dividers sx={{ p: 0 }}>
                   <Grid container>
-                    <Grid item xs={12} md={6}>
+                    <Grid item xs={12} md={6} >
                       <ScrollableContent>
                         <Typography sx={{ mt: 2, color: 'black', fontSize: '18px', fontWeight: 'bold' }}>
                           ข้อปฏิบัติและเงื่อนไขในการใช้บริการเรือ:
@@ -557,8 +579,16 @@ const BookingView = () => {
                         <TextField
                           fullWidth
                           label="ชื่อ"
-                          value={name}
-                          onChange={(e) => setName(e.target.value)}
+                          value={first_name}
+                          onChange={(e) => setFirstname(e.target.value)}
+                          margin="normal"
+                          variant="outlined"
+                        />
+                        <TextField
+                          fullWidth
+                          label="นามสกุล"
+                          value={last_name}
+                          onChange={(e) => setLastName(e.target.value)}
                           margin="normal"
                           variant="outlined"
                         />
@@ -588,6 +618,14 @@ const BookingView = () => {
                             inputMode: 'numeric',
                             pattern: '[0-9]*',
                           }}
+                        />
+                        <TextField
+                          fullWidth
+                          label="ที่อยู่"
+                          value={address}
+                          onChange={(e) => setAddress(e.target.value)}
+                          margin="normal"
+                          variant="outlined"
                         />
                       </Box>
                     </Grid>
