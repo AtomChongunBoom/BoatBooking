@@ -212,28 +212,31 @@ const transporter = nodemailer.createTransport({
 });
 
 app.post('/send-email', (req, res) => {
-  const { to, subject, text } = req.body;
+  const { email } = req.body; // Destructure email from req.body
+  console.log(email);
 
-
-  if (!to || !subject || !text) {
-    console.error(req.body);
+  if (!email) {
+    console.error('Email is required but not provided:', req.body);
     return res.status(400).send('Missing required fields');
   }
 
+  // Read the HTML file that will be used as the email content
   const htmlFile = fs.readFileSync('email.html', 'utf8');
 
+  // Set up email options
   const mailOptions = {
-    from: process.env.EMAIL_USER, 
-    to: to,                      
-    subject: subject,            
-    html: htmlFile  // Replace with your HTML content
+    from: process.env.EMAIL_USER, // Sender address
+    to: email,                    // Receiver address
+    subject: "Ticket Wonder Blue", // Subject line
+    html: htmlFile                // HTML body content
   };
 
+  // Send the email using nodemailer
   transporter.sendMail(mailOptions, (error, info) => {
     if (error) {
-      console.error('Error: ', error);
+      console.error('Error while sending email: ', error);
       return res.status(500).send('Failed to send email');
-    } 
+    }
     res.status(200).send('Email sent: ' + info.response);
   });
 });

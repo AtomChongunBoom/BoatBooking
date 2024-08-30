@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import axios from 'axios'
 import { v4 as uuidv4 } from 'uuid';
 import {
   Container,
@@ -24,6 +25,10 @@ import {
   Dashboard,
   Campaign
 } from '@mui/icons-material';
+import BoatBookingLanding from '../LandingPage/landingPage_view';
+
+import { Rules } from './booking_model';
+import { SendEmail } from '../../service/booking_service';
 import Swal from 'sweetalert2';
 import { FaSadTear } from 'react-icons/fa';
 import { MdCancel } from "react-icons/md";
@@ -34,11 +39,7 @@ import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
 import CustomStepper from '../../component/timeline';
-import { format } from 'date-fns';
-import axios from 'axios';
-import BoatBookingLanding from '../LandingPage/landingPage_view';
-
-import { Rules } from './booking_model';
+import { format } from 'date-fns';;
 
 const BookingView = () => {
 
@@ -172,7 +173,7 @@ const BookingView = () => {
         text: 'จำนวนผู้โดยสาร "ผู้ใหญ่" น้อยเกินกำหนด'
       });
       return;
-    }else if(children === 0 && adults === 0){
+    } else if (children === 0 && adults === 0) {
       setOpenDialog(false);
       Swal.fire({
         icon: 'error',
@@ -200,6 +201,7 @@ const BookingView = () => {
           };
           console.log(bookingData.creat_date);
           await addTicketboat(bookingData);
+          await SendEmail(bookingData)
 
           setOpenDialog(false);
 
@@ -354,26 +356,26 @@ const BookingView = () => {
         }}
       >
         <Box sx={{
-         position: 'relative',
-         minHeight: isMobile ? 'auto' : '64vh',
-         borderRadius: 3,
-         width: isMobile ? '100%' : '70%',
-         padding: theme.spacing(2),
-         '&::before': {
-           content: '""',
-           position: 'absolute',
-           top: 0,
-           right: 0,
-           bottom: 0,
-           left: 0,
-           backgroundColor: 'white',
-           opacity: 0.5,
-           borderRadius: 'inherit',
-         }
+          position: 'relative',
+          minHeight: isMobile ? 'auto' : '64vh',
+          borderRadius: 3,
+          width: isMobile ? '100%' : '70%',
+          padding: theme.spacing(2),
+          '&::before': {
+            content: '""',
+            position: 'absolute',
+            top: 0,
+            right: 0,
+            bottom: 0,
+            left: 0,
+            backgroundColor: 'white',
+            opacity: 0.5,
+            borderRadius: 'inherit',
+          }
         }}>
-          
-          <Box sx={{ position: 'relative', zIndex: 1}}>
-          <CustomStepper currentStep={step - 1} />
+
+          <Box sx={{ position: 'relative', zIndex: 1 }}>
+            <CustomStepper currentStep={step - 1} />
           </Box>
           <LocalizationProvider dateAdapter={AdapterDateFns}>
             <Container maxWidth="lg"

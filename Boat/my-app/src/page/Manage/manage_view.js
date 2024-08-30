@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Box, Grid, Card, CardContent, Typography, CircularProgress, TextField, IconButton ,Chip } from '@mui/material';
+import { Box, Grid, Card, CardContent, Typography, CircularProgress, TextField, IconButton, Chip } from '@mui/material';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { DataGrid } from '@mui/x-data-grid';
 import axios from 'axios';
@@ -57,18 +57,18 @@ const CSMTable = () => {
 
     const getStatusColor = (status) => {
         switch (status.toLowerCase()) {
-          case 'เสร็จสิ้น':
-            return { color: 'success', backgroundColor: '#e6f4ea', borderColor: '#34a853' };
-          case 'รอชำระเงิน':
-            return { color: 'warning', backgroundColor: '#fff8e1', borderColor: '#ffa000' };
-          case 'ยกเลิกการจอง':
-            return { color: 'error', backgroundColor: '#fde7e7', borderColor: '#d32f2f' };
-          case 'พร้อมให้บริการ':
-            return { color: 'info', backgroundColor: '#e3f2fd', borderColor: '#1976d2' };
-          default:
-            return { color: 'default', backgroundColor: '#f5f5f5', borderColor: '#9e9e9e' };
+            case 'เสร็จสิ้น':
+                return { color: 'success', backgroundColor: '#e6f4ea', borderColor: '#34a853' };
+            case 'รอชำระเงิน':
+                return { color: 'warning', backgroundColor: '#fff8e1', borderColor: '#ffa000' };
+            case 'ยกเลิกการจอง':
+                return { color: 'error', backgroundColor: '#fde7e7', borderColor: '#d32f2f' };
+            case 'พร้อมให้บริการ':
+                return { color: 'info', backgroundColor: '#e3f2fd', borderColor: '#1976d2' };
+            default:
+                return { color: 'default', backgroundColor: '#f5f5f5', borderColor: '#9e9e9e' };
         }
-      };
+    };
 
     const columns = [
         { field: 'id', headerName: 'ID', width: 70, flex: 2 },
@@ -95,7 +95,7 @@ const CSMTable = () => {
                         color={color}
                         variant="outlined"
                         sx={{
-                            width:'120px',
+                            width: '120px',
                             backgroundColor: backgroundColor,
                             borderColor: borderColor,
                             '& .MuiChip-label': {

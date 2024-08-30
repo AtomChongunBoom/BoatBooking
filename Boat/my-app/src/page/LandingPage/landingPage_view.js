@@ -1,8 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-    AppBar,
-    Toolbar,
     Typography,
     Button,
     Container,
@@ -11,10 +9,9 @@ import {
     CardContent,
     CardMedia,
     Box,
-    TextField,
     Modal,
 } from '@mui/material';
-import { FaSailboat,FaFacebookF, FaInstagram, FaTwitter } from 'react-icons/fa6';
+import { FaSailboat, FaFacebookF, FaInstagram, FaTwitter } from 'react-icons/fa6';
 
 
 const BoatBookingLanding = () => {
@@ -46,10 +43,10 @@ const BoatBookingLanding = () => {
 
     const scrollToTop = () => {
         window.scrollTo({
-          top: 0,
-          behavior: 'smooth' // จะเลื่อนอย่างนุ่มนวล
+            top: 0,
+            behavior: 'smooth' // จะเลื่อนอย่างนุ่มนวล
         });
-      };
+    };
 
     return (
         <Box sx={{ flexGrow: 1 }}>
