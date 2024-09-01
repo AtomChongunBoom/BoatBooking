@@ -4,10 +4,17 @@ const bodyParser = require('body-parser');
 const mysql = require('mysql');
 const cors = require('cors');
 const fs = require('fs');
+const { format } = require('date-fns');
+const handlebars = require('handlebars');
 require('dotenv').config(); // To use environment variables
 
 const swaggerJsDoc = require('swagger-jsdoc');
 const swaggerUi = require('swagger-ui-express');
+
+const omise = require('omise')({
+  secretKey: process.env.OMISE_SECRET_KEY,
+  omiseVersion: process.env.OMISE_VERSION
+});
 
 const app = express();
 const port = 8000;
@@ -164,13 +171,13 @@ app.get('/getCount/:date/:time', (req, res) => {
  *         description: Record added successfully
  */
 app.post('/addTicketboat', (req, res) => {
-  const { id, date, time, adults, children, total_people, total_price, first_name, last_name,email, tel,address,creat_date } = req.body;
-  const status = "เลื่อน"
+  const { id, date, time, adults, children, total_people, total_price, first_name, last_name, email, tel, address, creat_date } = req.body;
+  const status = "รอชำระเงิน"
   const sql = `
     INSERT INTO ticketboat (id, date, time, adults, children, total_people, total_price, first_name, last_name,email, tel, address,status,creat_date)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?,?,?)
   `;
-  db.query(sql, [id, date, time, adults, children, total_people, total_price, first_name, last_name,email, tel,address,status,creat_date], (err, result) => {
+  db.query(sql, [id, date, time, adults, children, total_people, total_price, first_name, last_name, email, tel, address, status, creat_date], (err, result) => {
     if (err) {
       console.error('Database query error:', err);
       return res.status(500).json({ error: 'Database query failed' });
@@ -206,31 +213,45 @@ const transporter = nodemailer.createTransport({
   service: 'gmail',
   secure: false,
   auth: {
-    user: "poochit.sk@gmail.com",
-    pass: "xvhofxlslhyajajm"
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS
   }
 });
 
 app.post('/send-email', (req, res) => {
-  const { email } = req.body; // Destructure email from req.body
+
+  let { id, date, time, adults, children, total_people, total_price, first_name, last_name, email, tel, address, creat_date } = req.body;
+  const adultTotal = adults * 1500;
+  const childrenTotal = children * 1000;
+  const vat = 7
+  const totalVat = (total_price * vat / 100)
+  total_price = total_price + totalVat;
+  date = format(new Date(date), 'dd/MM/yyyy');
+  const emailData = {
+    id, date, time, adults, children, total_people,
+    first_name, last_name, email, tel, address,
+    adultTotal, childrenTotal, totalVat, total_price
+  };
+
 
   if (!email) {
     console.error('Email is required but not provided:', req.body);
     return res.status(400).send('Missing required fields');
   }
 
-  // Read the HTML file that will be used as the email content
-  const htmlFile = fs.readFileSync('email.html', 'utf8');
+  const htmlTemplate = fs.readFileSync('email.html', 'utf8');
 
-  // Set up email options
+  const template = handlebars.compile(htmlTemplate);
+
+  const htmlToSend = template(emailData);
+
   const mailOptions = {
-    from: process.env.EMAIL_USER, // Sender address
-    to: email,                    // Receiver address
-    subject: "E-Ticket สำหรับการเดินทางเรือของคุณ - [True Lesing / Ayutaya]", // Subject line
-    html: htmlFile                // HTML body content
+    from: process.env.EMAIL_USER,
+    to: email,
+    subject: "E-Ticket สำหรับการเดินทางเรือของคุณ - [True Lesing / Ayutaya]",
+    html: htmlToSend
   };
 
-  // Send the email using nodemailer
   transporter.sendMail(mailOptions, (error, info) => {
     if (error) {
       console.error('Error while sending email: ', error);
@@ -240,8 +261,51 @@ app.post('/send-email', (req, res) => {
   });
 });
 
+const createCharge = (source, amount, ticketId) => {
+  console.log('Creating charge', source)
+  return new Promise((resolve, reject) => {
+    omise.charges.create({
+      amount: (amount * 100),
+      currency: 'THB',
+      return_uri: `http://localhost:3000/payment/success`,
+      metadata: {
+        ticketId
+      },
+      source,
+    }, (err, resp) => {
+      if (err) {
+        return reject(err)
+      }
+      resolve(resp)
+    })
+  })
+}
+
+app.post('/payment', async (req, res) => {
+  try {
+    const { source: sourceId, ticketId, amount } = req.body;
+
+    const omiseRes = await createCharge(sourceId, amount, ticketId);
+    console.log(omiseRes);
+
+    const data = {
+      ticketId,
+      omiseId: omiseRes.id,
+      status: omiseRes.status,
+      amount: omiseRes.amount / 100,
+      redirectUrl: omiseRes.authorize_uri,
+    };
+
+    res.status(200).json(data);
+  } catch (error) {
+    console.error('Error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 
 
 app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`);
+
 });

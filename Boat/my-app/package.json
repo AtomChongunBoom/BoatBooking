@@ -19,6 +19,7 @@
     "day": "^0.0.2",
     "dayjs": "^1.11.13",
     "lucide-react": "^0.436.0",
+    "omise": "^0.12.1",
     "react": "^18.3.1",
     "react-calendar": "^5.0.0",
     "react-dom": "^18.3.1",

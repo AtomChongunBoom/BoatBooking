@@ -1,5 +1,8 @@
+/* global Omise */
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios'
+
 import { v4 as uuidv4 } from 'uuid';
 import {
   Container,
@@ -25,23 +28,29 @@ import {
   Dashboard,
   Campaign
 } from '@mui/icons-material';
-import BoatBookingLanding from '../LandingPage/landingPage_view';
-
-import { Rules } from './booking_model';
-import { SendEmail } from '../../service/booking_service';
+import { useTheme } from '@mui/material/styles';
+import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
+import { LocalizationProvider, StaticDatePicker, MobileDatePicker } from '@mui/x-date-pickers';
+import { format } from 'date-fns';
 import Swal from 'sweetalert2';
+
 import { FaSadTear } from 'react-icons/fa';
 import { MdCancel } from "react-icons/md";
 import { BsCheckCircleFill } from "react-icons/bs";
-import { useTheme } from '@mui/material/styles';
-import { LocalizationProvider, StaticDatePicker, MobileDatePicker } from '@mui/x-date-pickers';
-import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import AddIcon from '@mui/icons-material/Add';
+
 import RemoveIcon from '@mui/icons-material/Remove';
 import CustomStepper from '../../component/timeline';
-import { format } from 'date-fns';;
+import BoatBookingLanding from '../LandingPage/landingPage_view';
+import { AlertError, AlertLoading, AlertSuccess } from '../../component/popupAlert';
+
+import { SendEmail, CreateSource, AddTicketboat, Getpayment } from '../../service/booking_service';
+
+import { Rules } from './booking_model';
 
 const BookingView = () => {
+
+  const navigate = useNavigate();
 
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
@@ -55,7 +64,7 @@ const BookingView = () => {
   const [tel, setTel] = useState();
   const [disable, setDisable] = useState(false);
   const [visible, setVisible] = useState(false);
-  const [submittingBtn,setSubmittingBtn] = useState(false);
+  const [submittingBtn, setSubmittingBtn] = useState(false);
   const DefaultDate = new Date();
 
 
@@ -82,7 +91,7 @@ const BookingView = () => {
   const [step, setStep] = useState(1);
 
   useEffect(() => {
-
+    Omise.setPublicKey(process.env.REACT_APP_OMISE_PUBLIC_KEY)
     if (countPeople >= 5) {
       setDisable(false);
     } else {
@@ -164,47 +173,21 @@ const BookingView = () => {
   };
 
   const handleSubmitted = async () => {
+    setOpenDialog(false);
+    let paymentState = {}
     if (!first_name || !last_name || !address || !email || !tel || !selectedTime) {
-      setOpenDialog(false);
-      Swal.fire({
-        icon: 'error',
-        title: 'กรุณากรอกข้อมูลให้ครบ',
-        text: 'โปรดกรอกข้อมูลในช่องที่จำเป็นทั้งหมด'
-      });
+      AlertError('เกิดข้อผิดพลาด', 'กรอกข้อมูลให้ครบถ้วน')
       return;
     }
 
     if (children >= 0 && adults <= 0) {
-      setOpenDialog(false);
-      Swal.fire({
-        icon: 'error',
-        title: 'เกิดข้อผิดพลาด',
-        text: 'จำนวนผู้โดยสาร "ผู้ใหญ่" น้อยเกินกำหนด'
-      });
-      return;
-    } else if (children === 0 && adults === 0) {
-      setOpenDialog(false);
-      Swal.fire({
-        icon: 'error',
-        title: 'เกิดข้อผิดพลาด',
-        text: 'กรุณาระบุผู้โดยสาร'
-      });
+      AlertError('เกิดข้อผิดพลาด', 'จำนวนผู้โดยสาร "ผู้ใหญ่" น้อยเกินกำหนด')
       return;
     }
 
     if (countPeople + (adults + children) < 6) {
       if (children < 4) {
-        setOpenDialog(false);
-        Swal.fire({
-          title: 'กำลังดำเนินการ',
-          text: 'กรุณารอสักครู่...',
-          allowOutsideClick: false,
-          allowEscapeKey: false,
-          showConfirmButton: false,
-          willOpen: () => {
-            Swal.showLoading();
-          }
-        });
+        AlertLoading()
 
         try {
           const bookingData = {
@@ -222,56 +205,53 @@ const BookingView = () => {
             'address': address,
             'creat_date': new Date().toISOString()
           };
-          console.log(bookingData.creat_date);
-          await addTicketboat(bookingData);
-          await SendEmail(bookingData);
 
-          setOpenDialog(false);
-          Swal.fire({
-            icon: 'success',
-            title: 'สำเร็จ!',
-            text: 'ข้อมูลการจองของคุณถูกบันทึกเรียบร้อยแล้ว'
-          });
+          let omiseRes;
+          try {
+            omiseRes = await CreateSource(bookingData.total_price);
+          } catch (error) {
+            AlertError('เกิดข้อผิดพลาด', 'ไม่สามารถสร้างแหล่งการชำระเงินได้')
+            throw new Error('ไม่สามารถสร้างแหล่งการชำระเงินได้');
+          }
+
+          const paymentData = {
+            "ticketID": bookingData.id,
+            "source": omiseRes.id,
+            "amount": bookingData.total_price,
+          }
+
+          try {
+            await AddTicketboat(bookingData);
+          } catch (error) {
+            AlertError('เกิดข้อผิดพลาด', 'ไม่สามารถบันทึกการจองได้ โปรดลองอีกครั้งในภายหลัง')
+          }
+
+          try {
+            await SendEmail(bookingData);
+          } catch (error) {
+            AlertError('เกิดข้อผิดพลาด', 'ไม่สามารถส่งอีเมลได้')
+
+          }
+
+          try {
+            paymentState = await Getpayment(paymentData);
+          } catch (error) {
+            AlertError('เกิดข้อผิดพลาด', 'ไม่สามารถดำเนินการชำระเงินได้')
+          }
+
+          AlertSuccess('สำเร็จ', 'ข้อมูลการจองของคุณถูกบันทึกเรียบร้อยแล้ว')
+          window.location.href = paymentState.redirectUrl;
         } catch (error) {
-          console.error("Error submitting booking:", error);
-          Swal.fire({
-            icon: 'error',
-            title: 'เกิดข้อผิดพลาด',
-            text: 'ไม่สามารถบันทึกการจองได้ โปรดลองอีกครั้งในภายหลัง'
-          });
-          setOpenDialog(false);
+
+          AlertError('เกิดข้อผิดพลาด', 'ไม่สามารถบันทึกการจองได้ โปรดลองอีกครั้งในภายหลัง')
         }
       } else {
-        Swal.fire({
-          icon: 'error',
-          title: 'เกิดข้อผิดพลาด',
-          text: 'จำนวนผู้โดยสาร "เด็ก" มากเกินกำหนด'
-        });
-        setOpenDialog(false);
+        AlertError('จำนวนผู้โดยสาร "เด็ก" มากเกินกำหนด')
       }
     } else {
-      Swal.fire({
-        icon: 'error',
-        title: 'เกิดข้อผิดพลาด',
-        text: 'ไม่สามารถบันทึกการจองได้ เนื่องจากผู้โดยสารเกินกำหนด'
-      });
-      setOpenDialog(false);
+      AlertError('เกิดพลาด', 'ไม่สามารถบันทึกการจองได้ เนื่องจากผู้โดยสารเกินกำหนด')
     }
     handleMaxPeople();
-  };
-
-  const addTicketboat = async (data) => {
-    try {
-      const response = await axios.post('http://localhost:8000/addTicketboat', data, {
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-      return response.data;
-    } catch (error) {
-      console.error('Error adding ticket boat:', error);
-      throw error;
-    }
   };
 
   const CheckBoat = async (date, time) => {
@@ -479,7 +459,7 @@ const BookingView = () => {
                           </Box>
                         </Box>
                         <Typography variant="h6" align="right">ยอดรวม: {totalPrice.toFixed(2)} บาท</Typography>
-                        { submittingBtn && (<Button
+                        {submittingBtn && (<Button
                           fullWidth
                           variant="contained"
                           color="primary"

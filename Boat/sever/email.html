@@ -707,7 +707,10 @@
                                     "
                                   >
                                     <p style="margin: 0">
-                                      <strong>Date</strong> 5/10/202X
+                                      <strong>Date</strong> {{date}}
+                                    </p>
+                                    <p style="margin: 0">
+                                      <strong>Time</strong> {{time}}
                                     </p>
                                   </div>
                                 </td>
@@ -979,7 +982,7 @@
                                   >
                                     <p style="margin: 0">
                                       <strong
-                                        >&nbsp;Date 5/10/2024 ·<span
+                                        >&nbsp;{{date}}·<span
                                           style="
                                             word-break: break-word;
                                             color: #e7ff85;
@@ -1123,7 +1126,7 @@
                                           word-break: break-word;
                                           color: #00c3ff;
                                         "
-                                        >Invoiced to: MR. Atom</span
+                                        >Invoiced to: MR. {{first_name}} {{last_name}}</span
                                       ><br
                                     /></span>
                                   </h2>
@@ -1225,7 +1228,7 @@
                                       class="tinyMce-placeholder"
                                       style="word-break: break-word"
                                       ><em
-                                        >123 High Street, London, W1C
+                                        >{{address}}
                                         2HS&nbsp;</em
                                       ></span
                                     >
@@ -1402,7 +1405,7 @@
                                             border-left: 1px solid #dddddd;
                                           "
                                         >
-                                          1
+                                          {{adults}}
                                         </td>
                                         <td
                                           width="20%"
@@ -1428,7 +1431,7 @@
                                             border-left: 1px solid #dddddd;
                                           "
                                         >
-                                          1500 &nbsp;<strong>฿</strong>
+                                          {{adultTotal}} &nbsp;<strong>฿</strong>
                                         </td>
                                       </tr>
                                       <tr>
@@ -1456,7 +1459,7 @@
                                             border-left: 1px solid #dddddd;
                                           "
                                         >
-                                          Child
+                                          children
                                         </td>
                                         <td
                                           width="20%"
@@ -1469,20 +1472,7 @@
                                             border-left: 1px solid #dddddd;
                                           "
                                         >
-                                          1
-                                        </td>
-                                        <td
-                                          width="20%"
-                                          style="
-                                            padding: 10px;
-                                            word-break: break-word;
-                                            border-top: 1px solid #dddddd;
-                                            border-right: 1px solid #dddddd;
-                                            border-bottom: 1px solid #dddddd;
-                                            border-left: 1px solid #dddddd;
-                                          "
-                                        >
-                                          1000 <strong>฿&nbsp;</strong>
+                                          {{children}}
                                         </td>
                                         <td
                                           width="20%"
@@ -1496,6 +1486,19 @@
                                           "
                                         >
                                           1000 <strong>฿&nbsp;</strong>
+                                        </td>
+                                        <td
+                                          width="20%"
+                                          style="
+                                            padding: 10px;
+                                            word-break: break-word;
+                                            border-top: 1px solid #dddddd;
+                                            border-right: 1px solid #dddddd;
+                                            border-bottom: 1px solid #dddddd;
+                                            border-left: 1px solid #dddddd;
+                                          "
+                                        >
+                                          {{childrenTotal}} <strong>฿&nbsp;</strong>
                                         </td>
                                       </tr>
                                       <tr>
@@ -1629,7 +1632,7 @@
                                             border-left: 1px solid #dddddd;
                                           "
                                         >
-                                          175 <strong>฿&nbsp;</strong>
+                                          {{totalVat}} <strong>฿&nbsp;</strong>
                                         </td>
                                       </tr>
                                       <tr>
@@ -1657,7 +1660,7 @@
                                             border-left: 1px solid #dddddd;
                                           "
                                         >
-                                          Total Price
+                                          จำนวนเงินสุธิ
                                         </td>
                                         <td
                                           width="20%"
@@ -1696,7 +1699,7 @@
                                             border-left: 1px solid #dddddd;
                                           "
                                         >
-                                          2675 &nbsp;<strong>฿&nbsp;</strong>
+                                        {{total_price}} &nbsp;<strong>฿&nbsp;</strong>
                                         </td>
                                       </tr>
                                     </tbody>

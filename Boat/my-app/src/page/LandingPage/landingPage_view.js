@@ -17,8 +17,6 @@ import { FaSailboat, FaFacebookF, FaInstagram, FaTwitter } from 'react-icons/fa6
 import { BoatDetailsModal } from '../../component/popUp';
 import { FaMapMarkerAlt, FaCalendarAlt } from 'react-icons/fa';
 
-
-
 const BoatBookingLanding = () => {
 
 

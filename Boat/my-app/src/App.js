@@ -3,6 +3,8 @@ import { AppBar, Toolbar, Typography, Button, Container } from '@mui/material';
 import BookingView from './page/Booking/booking_view';
 import CSMTable from './page/CSM/manage_view';
 import CandidateBooking from './page/CSM/edit/editBooking_view';
+import Checkout from './page/Booking/test_view';
+import PaymentSuccessPage from './page/Booking/s/paymentSuccess';
 function App() {
   return (
     <Router>
@@ -23,6 +25,8 @@ function App() {
         <Route path="/" element={<BookingView />} />
         <Route path="/admin" element={<CSMTable />} />
         <Route path="/admin/edit" element={<CandidateBooking />} />
+        <Route path="/payment" element={<Checkout />} />
+        <Route path="/payment/success" element={<PaymentSuccessPage />} />
       </Routes>
     </Router>
   );
