@@ -219,7 +219,6 @@ const transporter = nodemailer.createTransport({
 });
 
 app.post('/send-email', (req, res) => {
-
   let { id, date, time, adults, children, total_people, total_price, first_name, last_name, email, tel, address, creat_date } = req.body;
   const adultTotal = adults * 1500;
   const childrenTotal = children * 1000;
@@ -233,16 +232,13 @@ app.post('/send-email', (req, res) => {
     adultTotal, childrenTotal, totalVat, total_price
   };
 
-
   if (!email) {
     console.error('Email is required but not provided:', req.body);
     return res.status(400).send('Missing required fields');
   }
 
   const htmlTemplate = fs.readFileSync('email.html', 'utf8');
-
   const template = handlebars.compile(htmlTemplate);
-
   const htmlToSend = template(emailData);
 
   const mailOptions = {
@@ -286,7 +282,7 @@ app.post('/payment', async (req, res) => {
     const { source: sourceId, ticketId, amount } = req.body;
 
     const omiseRes = await createCharge(sourceId, amount, ticketId);
-    console.log(omiseRes);
+    // console.log(omiseRes);
 
     const data = {
       ticketId,
