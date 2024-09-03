@@ -8,6 +8,8 @@ const { format } = require('date-fns');
 const handlebars = require('handlebars');
 require('dotenv').config(); // To use environment variables
 
+const QRCode = require('qrcode');
+
 const swaggerJsDoc = require('swagger-jsdoc');
 const swaggerUi = require('swagger-ui-express');
 
@@ -218,19 +220,25 @@ const transporter = nodemailer.createTransport({
   }
 });
 
-app.post('/send-email', (req, res) => {
+app.post('/send-email', async (req, res) => {
   let { id, date, time, adults, children, total_people, total_price, first_name, last_name, email, tel, address, creat_date } = req.body;
   const adultTotal = adults * 1500;
   const childrenTotal = children * 1000;
   const vat = 7
   const totalVat = (total_price * vat / 100)
   total_price = total_price + totalVat;
+  
   date = format(new Date(date), 'dd/MM/yyyy');
+
+  const qrCodeUrl = await QRCode.toDataURL(id);
+  
   const emailData = {
     id, date, time, adults, children, total_people,
     first_name, last_name, email, tel, address,
-    adultTotal, childrenTotal, totalVat, total_price
+    adultTotal, childrenTotal, totalVat, total_price,qrCodeUrl 
   };
+
+  console.log(qrCodeUrl);
 
   if (!email) {
     console.error('Email is required but not provided:', req.body);

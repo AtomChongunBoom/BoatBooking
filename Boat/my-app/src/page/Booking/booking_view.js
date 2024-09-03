@@ -1,7 +1,7 @@
 /* global Omise */
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios'
+import Cookies from 'js-cookie';
 
 import { v4 as uuidv4 } from 'uuid';
 import {
@@ -32,7 +32,6 @@ import { useTheme } from '@mui/material/styles';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { LocalizationProvider, StaticDatePicker, MobileDatePicker } from '@mui/x-date-pickers';
 import { format } from 'date-fns';
-import Swal from 'sweetalert2';
 
 import { FaSadTear } from 'react-icons/fa';
 import { MdCancel } from "react-icons/md";
@@ -44,7 +43,7 @@ import CustomStepper from '../../component/timeline';
 import BoatBookingLanding from '../LandingPage/landingPage_view';
 import { AlertError, AlertLoading, AlertSuccess } from '../../component/popupAlert';
 
-import { SendEmail, CreateSource, AddTicketboat, Getpayment } from '../../service/booking_service';
+import { SendEmail, CreateSource, AddTicketboat, Getpayment, CheckBoat } from '../../service/booking_service';
 
 import { Rules } from './booking_model';
 
@@ -148,7 +147,12 @@ const BookingView = () => {
   };
 
   const handleBooking = () => {
-    setOpenDialog(true);
+    Cookies.set('adults', adults, { expires: 7 })
+    Cookies.set('children', children, { expires: 7 })
+    Cookies.set('time', selectedTime, { expires: 7 })
+    Cookies.set('date', format(selectedDate, 'dd/MM/yyyy'), { expires: 7 })
+    Cookies.set('total_prices', totalPrice, { expires: 7 })
+    navigate('/checkout')
   };
 
   const handlePickTime = (newValue) => {
@@ -230,7 +234,6 @@ const BookingView = () => {
             await SendEmail(bookingData);
           } catch (error) {
             AlertError('เกิดข้อผิดพลาด', 'ไม่สามารถส่งอีเมลได้')
-
           }
 
           try {
@@ -252,19 +255,6 @@ const BookingView = () => {
       AlertError('เกิดพลาด', 'ไม่สามารถบันทึกการจองได้ เนื่องจากผู้โดยสารเกินกำหนด')
     }
     handleMaxPeople();
-  };
-
-  const CheckBoat = async (date, time) => {
-    try {
-      console.log(date);
-      console.log(time);
-      const response = await axios.get(`http://localhost:8000/getCount/${date}/${time}`);
-      console.log("response", response.data);
-      return response.data;
-    } catch (error) {
-      console.error('Error fetching data:', error);
-      throw error;
-    }
   };
 
   const ScrollableContent = styled(Box)(({ theme }) => ({
@@ -344,7 +334,7 @@ const BookingView = () => {
           minHeight: '100vh',
           width: '100%',
           backgroundImage: `
-          linear-gradient(to top, rgba(255, 255, 255, 255) 30%, rgba(0, 0, 0, 0) 100%),
+          linear-gradient(to top, rgba(255, 255, 255, 255) 20%, rgba(0, 0, 0, 0) 100%),
           url(https://resource.nationtv.tv/uploads/images/md/2021/09/iZZnJJkBL2Sf64HoM8b5.jpg?x-image-process=style/lg)
         `,
           backgroundSize: 'cover',

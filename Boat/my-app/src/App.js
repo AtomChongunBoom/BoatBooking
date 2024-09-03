@@ -5,10 +5,11 @@ import CSMTable from './page/CSM/manage_view';
 import CandidateBooking from './page/CSM/edit/editBooking_view';
 import Checkout from './page/Booking/test_view';
 import PaymentSuccessPage from './page/Booking/s/paymentSuccess';
+import CheckoutView from './page/Booking/Checkout/checkout';
 function App() {
   return (
     <Router>
-      <AppBar position="static" color="transparent">
+      <AppBar position="static" color="transparent" sx={{zIndex:999,position:'fixed',x:0,y:0 ,bgcolor:'white'}}>
         <Toolbar>
           <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
               <img 
@@ -27,6 +28,7 @@ function App() {
         <Route path="/admin/edit" element={<CandidateBooking />} />
         <Route path="/payment" element={<Checkout />} />
         <Route path="/payment/success" element={<PaymentSuccessPage />} />
+        <Route path="/checkout" element={<CheckoutView />} />
       </Routes>
     </Router>
   );

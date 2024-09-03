@@ -26,6 +26,19 @@ export const CreateSource = (amount) => {
     })
 }
 
+export const CheckBoat = async (date, time) => {
+    try {
+      console.log(date);
+      console.log(time);
+      const response = await axios.get(`http://localhost:8000/getCount/${date}/${time}`);
+      console.log("response", response.data);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching data:', error);
+      throw error;
+    }
+  };
+
 export const AddTicketboat = async (data) => {
     try {
         const response = await axios.post('http://localhost:8000/addTicketboat', data, {
@@ -37,11 +50,14 @@ export const AddTicketboat = async (data) => {
     } catch (error) {
         console.error('Error adding ticket boat:', error);
         if (error.response) {
-            throw new Error(`Failed to add ticket boat: ${error.response.data.message || 'Unknown error'}`)
+            //throw new Error(`Failed to add ticket boat: ${error.response.data.message || 'Unknown error'}`)
+            return []
         } else if (error.request) {
-            throw new Error('No response received from server. Please check your connection.')
+            //throw new Error('No response received from server. Please check your connection.')
+            return []
         } else {
-            throw new Error('Failed to add ticket boat. Please try again.')
+            // throw new Error('Failed to add ticket boat. Please try again.')
+            return []
         }
     }
 };
@@ -57,11 +73,14 @@ export const Getpayment = async (data) => {
     } catch (error) {
         console.error('Error getting payment:', error);
         if (error.response) {
-            throw new Error(`Payment error: ${error.response.data.message || 'Unknown error'}`)
+            // throw new Error(`Payment error: ${error.response.data.message || 'Unknown error'}`)
+            return []
         } else if (error.request) {
-            throw new Error('No response received from payment server. Please try again.')
+            // throw new Error('No response received from payment server. Please try again.')
+            return []
         } else {
-            throw new Error('Failed to process payment. Please try again.')
+            // throw new Error('Failed to process payment. Please try again.')
+            return []
         }
     }
 };
