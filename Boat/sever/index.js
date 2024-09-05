@@ -7,6 +7,7 @@ const fs = require('fs');
 const { format } = require('date-fns');
 const handlebars = require('handlebars');
 require('dotenv').config(); // To use environment variables
+const path = require('path');
 
 const QRCode = require('qrcode');
 
@@ -96,6 +97,7 @@ app.get('/getTicketboat', (req, res) => {
  */
 app.get('/getCount/:date/:time', (req, res) => {
   const { date, time } = req.params;
+  console.log(date, time)
 
   // Define the SQL query to get the ticket counts
   const query = `
@@ -121,6 +123,7 @@ app.get('/getCount/:date/:time', (req, res) => {
     } else {
       if (results.length > 0) {
         const result = results[0];
+        console.log(result);
         res.json({
           date: result.date,
           time: result.time,
@@ -172,14 +175,93 @@ app.get('/getCount/:date/:time', (req, res) => {
  *       201:
  *         description: Record added successfully
  */
+
+function generateWorkOrderNumber() {
+  const now = new Date();
+  const datePrefix = now.toISOString().slice(2, 8).replace(/-/g, ''); // YYMM
+
+  const counterFilePath = path.join(__dirname, 'counter.json');
+  let counter;
+
+  try {
+    const data = fs.readFileSync(counterFilePath, 'utf8');
+    const jsonData = JSON.parse(data);
+
+    if (jsonData.date === datePrefix.slice(0, 4)) { // YYMM
+      counter = jsonData.count + 1;
+    } else {
+      counter = 1;
+    }
+  } catch (error) {
+    counter = 1;
+  }
+
+  const paddedCounter = String(counter).padStart(5, '0');
+  const workOrderNumber = `${datePrefix}${paddedCounter}`;
+
+  // บันทึกค่าตัวนับลงในไฟล์
+  const jsonData = JSON.stringify({
+    date: datePrefix.slice(0, 4),
+    count: counter
+  });
+  fs.writeFileSync(counterFilePath, jsonData, 'utf8');
+
+  return workOrderNumber;
+}
 app.post('/addTicketboat', (req, res) => {
-  const { id, date, time, adults, children, total_people, total_price, first_name, last_name, email, tel, address, creat_date } = req.body;
-  const status = "รอชำระเงิน"
+  const {
+    id,
+    date,
+    time,
+    adults,
+    children,
+    total_people,
+    vat, 
+    amount,
+    total_price,
+    first_name,
+    last_name,
+    email,
+    tel,
+    address,
+    province,
+    district,
+    subdistrict,
+    zip_code,
+    note,
+    creat_date
+  } = req.body;
+  booking_id = generateWorkOrderNumber()
+  const status = "รอชำระเงิน";
   const sql = `
-    INSERT INTO ticketboat (id, date, time, adults, children, total_people, total_price, first_name, last_name,email, tel, address,status,creat_date)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?,?,?)
+    INSERT INTO ticketboat (id,booking_id,date, time, adults, children, total_people,vat,amount, total_price, first_name, last_name, email, tel, address, province, district, subdistrict, zip_code, note, status, creat_date)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?,?,?,?)
   `;
-  db.query(sql, [id, date, time, adults, children, total_people, total_price, first_name, last_name, email, tel, address, status, creat_date], (err, result) => {
+
+  db.query(sql, [
+    id,
+    booking_id,
+    date,
+    time,
+    adults,
+    children,
+    total_people,
+    vat, 
+    amount,
+    total_price,
+    first_name,
+    last_name,
+    email,
+    tel,
+    address,
+    province,
+    district,
+    subdistrict,
+    zip_code,
+    note,
+    status,
+    creat_date
+  ], (err, result) => {
     if (err) {
       console.error('Database query error:', err);
       return res.status(500).json({ error: 'Database query failed' });
@@ -187,6 +269,7 @@ app.post('/addTicketboat', (req, res) => {
     res.status(201).json({ message: 'Record added successfully', id: result.insertId });
   });
 });
+
 
 
 /**
@@ -227,15 +310,15 @@ app.post('/send-email', async (req, res) => {
   const vat = 7
   const totalVat = (total_price * vat / 100)
   total_price = total_price + totalVat;
-  
+
   date = format(new Date(date), 'dd/MM/yyyy');
 
   const qrCodeUrl = await QRCode.toDataURL(id);
-  
+
   const emailData = {
     id, date, time, adults, children, total_people,
     first_name, last_name, email, tel, address,
-    adultTotal, childrenTotal, totalVat, total_price,qrCodeUrl 
+    adultTotal, childrenTotal, totalVat, total_price, qrCodeUrl
   };
 
   console.log(qrCodeUrl);
@@ -266,7 +349,6 @@ app.post('/send-email', async (req, res) => {
 });
 
 const createCharge = (source, amount, ticketId) => {
-  console.log('Creating charge', source)
   return new Promise((resolve, reject) => {
     omise.charges.create({
       amount: (amount * 100),
@@ -307,6 +389,60 @@ app.post('/payment', async (req, res) => {
   }
 });
 
+
+app.get('/provinces', async (req, res) => {
+  db.query('SELECT * FROM thai_provinces', (err, result) => {
+    if (err) throw err;
+    res.send(result);
+  })
+})
+
+app.get('/districts', async (req, res) => {
+
+  let query = 'SELECT * FROM thai_amphures';
+
+  db.query(query, (err, result) => {
+    if (err) {
+      console.error('Error querying database:', err);
+      return res.status(500).send('Error querying database');
+    }
+    res.send(result);
+  });
+});
+
+app.get('/subdistricts', async (req, res) => {
+
+  let query = 'SELECT * FROM thai_tambons';
+
+  db.query(query, (err, result) => {
+    if (err) {
+      console.error('Error querying database:', err);
+      return res.status(500).send('Error querying database');
+    }
+    res.send(result);
+  });
+});
+
+
+app.get('/zipcode', async (req, res) => {
+  const subdistrictId = req.query.subdistrict_id;
+
+  let query = 'SELECT * FROM thai_tambons';
+  let queryParams = [];
+
+  if (subdistrictId && subdistrictId !== 'null' && subdistrictId !== 'undefined') {
+    query += ' WHERE id = ?';
+    queryParams.push(subdistrictId);
+  }
+
+  db.query(query, queryParams, (err, result) => {
+    if (err) {
+      console.error('Error querying database:', err);
+      return res.status(500).send('Error querying database');
+    }
+    res.send(result);
+  });
+});
 
 
 app.listen(port, () => {

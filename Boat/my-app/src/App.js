@@ -4,12 +4,24 @@ import BookingView from './page/Booking/booking_view';
 import CSMTable from './page/CSM/manage_view';
 import CandidateBooking from './page/CSM/edit/editBooking_view';
 import Checkout from './page/Booking/test_view';
-import PaymentSuccessPage from './page/Booking/s/paymentSuccess';
+import PaymentSuccessPage from './page/Booking/Success/paymentSuccess';
 import CheckoutView from './page/Booking/Checkout/checkout';
+import { ThemeProvider, createTheme } from '@mui/material/styles';
+import LoginPage from './page/Login/login_view';
+import Dashboard from './page/CSM/DashBord/dashbord';
 function App() {
+
+  const theme = createTheme({
+    typography: {
+      fontFamily: 'Prompt, sans-serif',
+    },
+    // คุณสามารถปรับแต่งอื่นๆ ในธีมนี้ได้เช่นกัน เช่นสีหลัก (palette)
+  });
   return (
-    <Router>
-      <AppBar position="static" color="transparent" sx={{zIndex:999,position:'fixed',x:0,y:0 ,bgcolor:'white'}}>
+    <ThemeProvider theme={theme}>
+      <Router>
+      {/* <AppBar position="static" color="transparent" sx={{zIndex:999,position:'fixed',x:0,y:0 ,bgcolor:'white'}}> */}
+      <AppBar position="static" color="transparent" >
         <Toolbar>
           <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
               <img 
@@ -24,6 +36,10 @@ function App() {
       </AppBar>
       <Routes>
         <Route path="/" element={<BookingView />} />
+
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/admin/dashboard" element={<Dashboard />} />
+
         <Route path="/admin" element={<CSMTable />} />
         <Route path="/admin/edit" element={<CandidateBooking />} />
         <Route path="/payment" element={<Checkout />} />
@@ -31,6 +47,7 @@ function App() {
         <Route path="/checkout" element={<CheckoutView />} />
       </Routes>
     </Router>
+    </ThemeProvider>
   );
 }
 

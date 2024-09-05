@@ -206,7 +206,7 @@ const BoatBookingLanding = () => {
 
 
                 {/* Booking Form */}
-                <Card sx={{ mb: 4, p: 2 }}>
+                {/* <Card sx={{ mb: 4, p: 2 }}>
                     <CardContent>
                         <Typography variant="h5" component="h2" gutterBottom>
                             จองทริปของคุณ
@@ -247,7 +247,7 @@ const BoatBookingLanding = () => {
                             </Grid>
                         </Grid>
                     </CardContent>
-                </Card>
+                </Card> */}
                 <div>
                     <Typography variant="h4" component="h2" gutterBottom sx={{ mt: 6, mb: 3 }}>
                         เรือของเรา

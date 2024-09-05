@@ -28,8 +28,6 @@ export const CreateSource = (amount) => {
 
 export const CheckBoat = async (date, time) => {
     try {
-      console.log(date);
-      console.log(time);
       const response = await axios.get(`http://localhost:8000/getCount/${date}/${time}`);
       console.log("response", response.data);
       return response.data;
@@ -69,6 +67,7 @@ export const Getpayment = async (data) => {
                 'Content-Type': 'application/json',
             },
         });
+        console.log(response.data);
         return response.data;
     } catch (error) {
         console.error('Error getting payment:', error);

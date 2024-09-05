@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Box, Grid, Card, CardContent, Typography, CircularProgress, TextField, IconButton, Chip } from '@mui/material';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { DataGrid } from '@mui/x-data-grid';
@@ -11,6 +12,7 @@ import PeopleIcon from '@mui/icons-material/People';
 import BoatIcon from '@mui/icons-material/DirectionsBoat';
 
 const CSMTable = () => {
+    const navigate = useNavigate();
     const [data, setData] = useState([]);
     const [loading, setLoading] = useState(true);
     const [filterText, setFilterText] = useState('');
@@ -71,23 +73,35 @@ const CSMTable = () => {
     };
 
     const columns = [
-        { field: 'id', headerName: 'ID', width: 70, flex: 2 },
-        { field: 'date', headerName: 'Date', width: 130, flex: 1 },
-        { field: 'time', headerName: 'Time', width: 130, flex: 1 },
-        { field: 'first_name', headerName: 'First Name', width: 200, flex: 1 },
-        { field: 'last_name', headerName: 'Last Naem', width: 200, flex: 1 },
-        { field: 'total_people', headerName: 'Total People', width: 100, flex: 0.75 },
-        { field: 'email', headerName: 'Total People', width: 200, flex: 1.5 },
-        { field: 'tel', headerName: 'Total People', width: 200, flex: 1 },
+        { field: 'booking_id', headerName: 'เลขที่ใบงาน', width: 70, flex: 1.5 },
+        { field: 'date', headerName: 'วันที่', width: 130, flex: 1 },
+        { field: 'time', headerName: 'รอบ', width: 130, flex: 1 },
+        { field: 'first_name', headerName: 'ชื่อจริง', width: 200, flex: 1 },
+        { field: 'last_name', headerName: 'นามสกุล', width: 200, flex: 1 },
+        { field: 'total_people', headerName: 'จำนวนผู้โดยสาร', width: 100, flex: 1 },
+        { field: 'email', headerName: 'Email', width: 200, flex: 1.5 },
+        { field: 'tel', headerName: 'เบอร์โทร', width: 200, flex: 1 },
+        {
+            field: 'amount',
+            headerName: 'ราคาจอง',
+            width: 130,
+            renderCell: (params) => `${params.value.toFixed(2)} ฿`,
+        },
+        {
+            field: 'vat',
+            headerName: 'ภาษีมูลค่าเพิ่ม',
+            width: 130,
+            renderCell: (params) => `${params.value.toFixed(2)} ฿`,
+        },
         {
             field: 'total_price',
-            headerName: 'Total Price',
+            headerName: 'จำนวนเงินสุธิ',
             width: 130,
             renderCell: (params) => `${params.value.toFixed(2)} ฿`,
         },
         {
             field: 'status',
-            headerName: 'Status',
+            headerName: 'สภาณะ',
             width: 200,
             flex: 1,
             renderCell: (params) => {
@@ -115,7 +129,7 @@ const CSMTable = () => {
             width: 130,
             renderCell: (params) => (
                 <Box>
-                    <IconButton onClick={() => handleEdit(params.row.id)} className="text-blue-600 hover:text-blue-800">
+                    <IconButton onClick={() =>navigate('/admin/edit')} className="text-blue-600 hover:text-blue-800">
                         <EditIcon />
                     </IconButton>
                     <IconButton onClick={() => handleDelete(params.row.id)} className="text-red-600 hover:text-red-800">

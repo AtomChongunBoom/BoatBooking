@@ -16,10 +16,7 @@ const PaymentSuccessPage = () => {
           ขอบคุณสำหรับการสั่งซื้อ เราได้รับการชำระเงินของคุณเรียบร้อยแล้ว
         </Typography>
         <Box sx={{ mt: 3 }}>
-          <Button variant="contained" color="primary" sx={{ mr: 2 }}>
-            ดูรายละเอียดคำสั่งซื้อ
-          </Button>
-          <Button variant="outlined" onClick={()=>navigate('/')}>
+          <Button variant="outlined"  color="primary" onClick={()=>navigate('/')}>
             กลับสู่หน้าหลัก
           </Button>
         </Box>
