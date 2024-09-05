@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate , Link } from 'react-router-dom';
+import { useNavigate , Link,useParams  } from 'react-router-dom';
 import { AppBar, Toolbar,Box, Grid, Card, CardContent, Typography, CircularProgress, TextField, IconButton, Chip,Button } from '@mui/material';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { DataGrid } from '@mui/x-data-grid';
@@ -19,9 +19,9 @@ const CSMTable = () => {
     const [loading, setLoading] = useState(true);
     const [filterText, setFilterText] = useState('');
     const [userData, setUserData] = useState();
-
+    const { id } = useParams();
+    const token = Cookies.get('token')
     useEffect(() => {
-        const token = Cookies.get('token')
         if (!token) {
             navigate('/login');
             return;
@@ -57,7 +57,7 @@ const CSMTable = () => {
 
     const handleEdit = (id) => {
         console.log(`Edit booking with id: ${id}`);
-        // Implement edit logic here
+        navigate(`/admin/edit/${id}`);
     };
 
     const handleDelete = (id) => {
@@ -69,7 +69,7 @@ const CSMTable = () => {
         const token = Cookies.get('token')
         console.log("token", token);
         const response = await authenticateUser(token);
-        console.log("UserData", response);
+        setUserData(response);
     };
 
     const getStatusColor = (status) => {
@@ -144,7 +144,7 @@ const CSMTable = () => {
             width: 130,
             renderCell: (params) => (
                 <Box>
-                    <IconButton onClick={() => navigate('/admin/edit')} className="text-blue-600 hover:text-blue-800">
+                    <IconButton onClick={() => handleEdit(params.row.booking_id)} className="text-blue-600 hover:text-blue-800">
                         <EditIcon />
                     </IconButton>
                     <IconButton onClick={() => handleDelete(params.row.id)} className="text-red-600 hover:text-red-800">

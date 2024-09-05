@@ -1,12 +1,18 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, } from 'react';
+import Cookies from 'js-cookie';
+import { useParams, useNavigate } from 'react-router-dom';
 import {
     Box, Card, CardContent, Typography, Grid, Chip, TextField, Fab, Select, MenuItem, InputLabel, FormControl, Stack
 } from '@mui/material';
 import { Save as SaveIcon, CheckCircle, Cancel, Schedule, Person, Description } from '@mui/icons-material';
 import { FaCalendarAlt, FaClock } from 'react-icons/fa';
+import { getBookingByID } from '../../../service/booking_service';
 
 
 const CandidateProfile = () => {
+
+    const navigate = useNavigate();
+
     const [candidate, setCandidate] = useState({
         id: 'WDR1212312121',
         first_name: 'Poochit',
@@ -22,6 +28,19 @@ const CandidateProfile = () => {
         time: '00:00:00',
         resumeHeadline: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.'
     });
+
+    const [data, setData] = useState([]);
+    const [userData, setUserData] = useState();
+    const { id } = useParams();
+    const token = Cookies.get('token')
+
+    useEffect(() => {
+        if (!token) {
+            navigate('/login');
+            return;
+        }
+        fetchBookings()
+    }, []);
 
     const [selectedDate, setSelectedDate] = useState('');
     const [selectedTimeSlot, setSelectedTimeSlot] = useState('');
@@ -64,11 +83,24 @@ const CandidateProfile = () => {
         return statusIcons[status] || <Cancel />;
     };
 
+    const fetchBookings = async () => {
+
+        console.log("Fetching booking");
+        try {
+            const data = { id: id, token: token }
+            const response = await getBookingByID(data);
+            setData(response.data);
+            console.log(response.data);
+        } catch (error) {
+            console.error('Error fetching data:', error);
+        }
+    }
+
     const renderTicketInfo = () => (
         <Grid container spacing={2}>
             <Grid item xs={12} md={6}>
                 <Typography variant="h2" component="h1" sx={{ fontWeight: 'bold' }}>
-                    Ticket: {candidate.id}
+                    Ticket : {data.booking_id}
                 </Typography>
             </Grid>
             <Grid item xs={12} md={6} sx={{ display: 'flex', justifyContent: 'end' }}>
@@ -116,10 +148,10 @@ const CandidateProfile = () => {
                         { label: "ชื่อ", name: "first_name" },
                         { label: "นามสกุล", name: "last_name" },
                         { label: "Email", name: "email" },
-                        { label: "เบอร์โทรศัพท์", name: "phone" },
-                        { label: 'จำนวนผู้โดยสาร "ผู้ใหญ่"', name: "adult" },
-                        { label: 'จำนวนผู้โดยสาร "เด็ก"', name: "child" },
-                        { label: 'จำนวนผู้โดยสาร ทั้งหมด', name: "total" },
+                        { label: "เบอร์โทรศัพท์", name: "tel" },
+                        { label: 'จำนวนผู้โดยสาร "ผู้ใหญ่"', name: "adults" },
+                        { label: 'จำนวนผู้โดยสาร "เด็ก"', name: "children" },
+                        { label: 'จำนวนผู้โดยสาร ทั้งหมด', name: "total_people" },
                         { label: 'ที่อยู่', name: "address" }
                     ].map((field) => (
                         <Grid item xs={12} key={field.name}>
@@ -127,10 +159,11 @@ const CandidateProfile = () => {
                                 fullWidth
                                 label={field.label}
                                 name={field.name}
-                                value={candidate[field.name]}
+                                value={data[field.name]}
                                 onChange={handleInputChange}
                                 variant="outlined"
                                 size="medium"
+                                placeholder={`Enter ${field.label.toLowerCase()}`} // เพิ่มบรรทัดนี้
                             />
                         </Grid>
                     ))}
@@ -153,7 +186,7 @@ const CandidateProfile = () => {
                                 label="วันที่"
                                 variant="outlined"
                                 type="date"
-                                value={selectedDate}
+                                value={data.date}
                                 onChange={handleDateChange}
                                 InputLabelProps={{ shrink: true }}
                                 InputProps={{
@@ -167,7 +200,7 @@ const CandidateProfile = () => {
                                 <Select
                                     labelId="time-slot-label"
                                     id="time-slot-select"
-                                    value={selectedTimeSlot}
+                                    value={data.time}
                                     onChange={handleTimeSlotChange}
                                     label="รอบเวลา"
                                     startAdornment={<FaClock style={{ marginRight: '8px' }} />}

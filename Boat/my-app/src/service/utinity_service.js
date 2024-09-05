@@ -54,7 +54,6 @@ export const getSubDistrict = async () =>{
             zip_code : data[i].zip_code
           });
         }
-        console.log("API : ",data);
         return tempdata;
     } catch (error) {
         console.error('Error fetching data:', error)

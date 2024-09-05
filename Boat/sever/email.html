@@ -704,7 +704,8 @@
                                     "
                                   >
                                     <p style="margin: 0">
-                                      <strong>Date</strong> 5/10/202X
+                                      <strong>Date</strong> {{date}}
+                                      <strong>Time</strong> {{time}}
                                     </p>
                                   </div>
                                 </td>
@@ -954,7 +955,7 @@
                                   >
                                     <p style="margin: 0">
                                       <strong
-                                        >&nbsp;Date 5/10/2024 ·<span
+                                        >&nbsp;Date {{date}}·<span
                                           style="
                                             word-break: break-word;
                                             color: #e7ff85;
@@ -1377,7 +1378,7 @@
                                             border-left: 1px solid #dddddd;
                                           "
                                         >
-                                          {{first_name}}
+                                          {{adults}}
                                         </td>
                                         <td
                                           width="20%"
@@ -1403,7 +1404,7 @@
                                             border-left: 1px solid #dddddd;
                                           "
                                         >
-                                          1500 &nbsp;<strong>฿</strong>
+                                          {{adultTotal}} &nbsp;<strong>฿</strong>
                                         </td>
                                       </tr>
                                       <tr>
@@ -1444,7 +1445,7 @@
                                             border-left: 1px solid #dddddd;
                                           "
                                         >
-                                          {{childrenTotal}}
+                                          {{children}}
                                         </td>
                                         <td
                                           width="20%"
@@ -1470,7 +1471,7 @@
                                             border-left: 1px solid #dddddd;
                                           "
                                         >
-                                          1000 <strong>฿&nbsp;</strong>
+                                         {{childrenTotal}} <strong>฿&nbsp;</strong>
                                         </td>
                                       </tr>
                                       <tr>
@@ -1604,7 +1605,7 @@
                                             border-left: 1px solid #dddddd;
                                           "
                                         >
-                                          175 <strong>฿&nbsp;</strong>
+                                          {{totalVat}} <strong>฿&nbsp;</strong>
                                         </td>
                                       </tr>
                                       <tr>
@@ -1671,7 +1672,7 @@
                                             border-left: 1px solid #dddddd;
                                           "
                                         >
-                                          2675 &nbsp;<strong>฿&nbsp;</strong>
+                                          {{total_price}} &nbsp;<strong>฿&nbsp;</strong>
                                         </td>
                                       </tr>
                                     </tbody>

@@ -83,3 +83,18 @@ export const Getpayment = async (data) => {
         }
     }
 };
+
+export const getBookingByID = async (body) =>{
+    try {
+        const response = await axios.get(`http://localhost:8000/getTicketboat/${body.id}`, {}, {
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${body.token}`
+            },
+        });
+        return response.data;
+    } catch (error) {
+        console.error('Error getting booking:', error);
+        throw error;
+    }
+}

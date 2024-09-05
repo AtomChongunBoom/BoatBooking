@@ -30,9 +30,13 @@ import { useTheme } from '@mui/material/styles';
 import { v4 as uuidv4 } from 'uuid';
 import { Rules } from './checkout_model';
 import { AddTicketboat, SendEmail, CreateSource, Getpayment } from '../../../service/booking_service';
+import { tr } from 'date-fns/locale';
 
 
 const CheckoutView = () => {
+
+    const navigate = useNavigate();
+
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
     const [province, setProvince] = useState([])
@@ -41,6 +45,9 @@ const CheckoutView = () => {
     const [districtDefaut, setDistrictDefaut] = useState([])
     const [subdistrictDefaut, setSubdistrictDefaut] = useState([])
     const [zip_code, setZipCode] = useState([])
+    const [AutocompleteState, setAutocomplateState] = useState({
+        district: false, setDistrict: false, zip_code: false
+    }) //
 
     const [adults, setAdults] = useState(0); // Initial value can be adjusted
     const [children, setChildren] = useState(0); // Initial value can be adjusted
@@ -58,22 +65,34 @@ const CheckoutView = () => {
     });
 
     const [dataFetched, setDataFetched] = useState(false);
+    const [formattedData, setFormattedData] = useState('')
     useEffect(() => {
         if (!dataFetched) {
             Omise.setPublicKey(process.env.REACT_APP_OMISE_PUBLIC_KEY)
             init();
         }
+
         const adults = parseInt(Cookies.get('adults'), 10) || 0;
         const children = parseInt(Cookies.get('children'), 10) || 0;
         const time = Cookies.get('time');
         const date = Cookies.get('date');
+
         const total_price = parseInt(Cookies.get('total_prices'), 10) || 0;
 
+        // ตรวจสอบว่าค่าเป็นค่าว่างหรือไม่
+        // if (!adults || !children || !time || !date || !total_price) {
+        //     // ถ้าค่าที่ได้รับไม่ถูกต้อง ให้ navigate ไปหน้าหลัก
+        //     navigate('/');
+        // } else {
+        //     // ดำเนินการต่อเมื่อข้อมูลครบถ้วน
         setTotal_price(total_price)
         setAdults(adults)
         setChildren(children)
         setTime(time)
         setDate(date)
+        const resDate = format(new Date(date), 'dd/MM/yyyy');
+        setFormattedData(resDate);
+        // }
     }, [checkboxValues, checkoutData]);
 
     const init = async () => {
@@ -96,6 +115,7 @@ const CheckoutView = () => {
         } catch (error) {
             console.error("Error during initialization:", error);
         }
+        setDataFetched(true);
     };
 
     const handleChangeCheckbox = (event) => {
@@ -106,7 +126,6 @@ const CheckoutView = () => {
         };
 
         setCheckboxValues(updatedCheckboxValues);
-
     };
 
     const handleChange = (event) => {
@@ -118,19 +137,39 @@ const CheckoutView = () => {
         });
     };
 
-    const handleSubmitted = async () => {
-        // Check if all checkboxes are checked
-        const allChecked = Object.values(checkboxValues).every(value => value === true);
+    const validateBookingData = (data) => {
+        const requiredFields = [
+            'date', 'time', 'adults', 'children', 'total_people', 'vat', 'amount', 'total_price',
+            'first_name', 'last_name', 'email', 'tel', 'address', 'province', 'district', 'subdistrict', 'zip_code'
+        ];
 
+        const emptyFields = requiredFields.filter(field => {
+            const value = data[field];
+            return value === undefined || value === null || value === '' ||
+                (typeof value === 'number' && isNaN(value));
+        });
+
+        if (emptyFields.length > 0) {
+            return {
+                isValid: false,
+                emptyFields: emptyFields
+            };
+        }
+
+        return { isValid: true };
+    };
+
+
+    const handleSubmitted = async () => {
+        // ตรวจสอบ checkboxes
+        const allChecked = Object.values(checkboxValues).every(value => value === true);
         if (!allChecked) {
             AlertError('เกิดข้อผิดพลาด', 'กรุณากดยอมรับเงื่อนไข');
             return;
         }
 
-        const typeDate = new Date(date)
+        const typeDate = new Date(date);
 
-        // // Prepare the booking data
-        // console.log('preparing', checkoutData);
         const bookingData = {
             id: uuidv4(),
             date: format(typeDate, 'yyyy-MM-dd'),
@@ -154,56 +193,63 @@ const CheckoutView = () => {
             creat_date: new Date().toISOString()
         };
 
-        // try {
-        //     await SendEmail(bookingData);
-        // } catch (error) {
-        //     AlertError('เกิดข้อผิดพลาด', 'ไม่สามารถส่งอีเมลได้')
-        // }
-        // console.log("data", bookingData);
+        // ตรวจสอบความถูกต้องของข้อมูล
+        const validationResult = validateBookingData(bookingData);
+        if (!validationResult.isValid) {
+            AlertError('เกิดข้อผิดพลาด', `กรุณากรอกข้อมูลให้ครบถ้วน: ${validationResult.emptyFields.join(', ')}`);
+            return;
+        }
 
         try {
             await AddTicketboat(bookingData);
-            AlertSuccess('สำเร็จ', 'ข้อมูลการจองของคุณถูกบันทึกเรียบร้อยแล้ว')
-            // Optionally, handle successful booking here (e.g., show a success message)
-        } catch (error) { // Log the error for debugging
+            AlertSuccess('สำเร็จ', 'ข้อมูลการจองของคุณถูกบันทึกเรียบร้อยแล้ว');
+        } catch (error) {
+            console.error('Error adding ticket boat:', error);
             AlertError('เกิดข้อผิดพลาด', 'ไม่สามารถบันทึกการจองได้ โปรดลองอีกครั้งในภายหลัง');
-            return
+            return;
+        }
+
+        try {
+            await SendEmail(bookingData);
+        } catch (error) {
+            AlertError('เกิดข้อผิดพลาด', 'ไม่สามารถส่งอีเมลได้')
         }
 
         let omiseRes;
         try {
             omiseRes = await CreateSource(bookingData.amount);
-            console.log("omiseRes",omiseRes);
-            //window.location.href = paymentState.redirectUrl;
+            console.log("omiseRes", omiseRes);
         } catch (error) {
-            AlertError('เกิดข้อผิดพลาด', 'ไม่สามารถสร้างแหล่งการชำระเงินได้')
-            // throw new Error('ไม่สามารถสร้างแหล่งการชำระเงินได้');
-            return
+            console.error('Error creating source:', error);
+            AlertError('เกิดข้อผิดพลาด', 'ไม่สามารถสร้างแหล่งการชำระเงินได้');
+            return;
         }
 
-        let paymentState = {}
-            const paymentData = {
-                "ticketID": bookingData.id,
-                "source": omiseRes.id,
-                "amount": bookingData.amount,
-            }
+        const paymentData = {
+            "ticketID": bookingData.id,
+            "source": omiseRes.id,
+            "amount": bookingData.amount,
+        };
 
+        let paymentState = {};
         try {
             paymentState = await Getpayment(paymentData);
         } catch (error) {
-            AlertError('เกิดข้อผิดพลาด', 'ไม่สามารถดำเนินการชำระเงินได้')
-            return
+            console.error('Error getting payment:', error);
+            AlertError('เกิดข้อผิดพลาด', 'ไม่สามารถดำเนินการชำระเงินได้');
+            return;
         }
-        const cookiesToRemove = ['adults', 'children', 'time', 'total_prices', 'date'];
 
+        const cookiesToRemove = ['adults', 'children', 'time', 'total_prices', 'date'];
         cookiesToRemove.forEach(cookie => Cookies.remove(cookie));
+
         window.location.href = paymentState.redirectUrl;
     };
 
 
     const handleChangeAutocomplate = async (event, newValue, name) => {
         // Log the new value to confirm it's being passed correctly
-        console.log("New Value:", newValue);
+        // console.log("New Value:", newValue);
 
         // Create a new checkoutData object based on the current input
         let updatedData = { ...checkoutData };
@@ -211,10 +257,7 @@ const CheckoutView = () => {
         if (newValue) {
             if (name === 'zip_code') {
                 updatedData[name] = newValue.zip_code;
-            } else {
-                updatedData[name] = newValue.value;
             }
-            console.log(name);
         }
 
         setCheckoutData(updatedData);
@@ -222,22 +265,55 @@ const CheckoutView = () => {
         // Handle subdistrict selection
         if (name === "subdistrict_id" && newValue?.value) {
             const currentSubdistricts = subdistrictDefaut.filter(d => newValue.value === d.value);
-            console.log("Filtered Subdistricts:", currentSubdistricts);
+            setCheckoutData({
+                ...checkoutData,
+                [name]: newValue.value,
+                ["zip_code"]: null,
+            });
+            setAutocomplateState({
+                ...AutocompleteState,
+                ["district"]: true,
+                ["setDistrict"]: true,
+                ["zip_code"]: true
+            })
             setZipCode(currentSubdistricts);  // Set zip code based on the current subdistrict
         }
 
         // Handle province selection
         else if (name === "province_id" && newValue?.value) {
             const currentDistricts = districtDefaut.filter(p => newValue.value === p.province_id);
-            console.log("Filtered Districts:", currentDistricts);
-            setDistrict(currentDistricts);  // Set the filtered districts
+            setCheckoutData({
+                ...checkoutData,
+                [name]: newValue.value,
+                ["district_id"]: null,
+                ["subdistrict_id"]: null,
+                ["zip_code"]: null,
+            });
+            setAutocomplateState({
+                ...AutocompleteState,
+                ["district"]: true,
+                ["setDistrict"]: false,
+                ["zip_code"]: false
+            })
+            setDistrict(currentDistricts);
         }
 
         // Handle district selection
         else if (name === "district_id" && newValue?.value) {
             const currentSubdistricts = subdistrictDefaut.filter(d => newValue.value === d.district_id);
-            console.log("Filtered Subdistricts:", currentSubdistricts);
-            setSubdistrict(currentSubdistricts);  // Set the filtered subdistricts
+            setCheckoutData({
+                ...checkoutData,
+                [name]: newValue.value,
+                ["subdistrict_id"]: null,
+                ["zip_code"]: null,
+            });
+            setAutocomplateState({
+                ...AutocompleteState,
+                ["district"]: true,
+                ["setDistrict"]: true,
+                ["zip_code"]: false
+            })
+            setSubdistrict(currentSubdistricts);
         }
 
     };
@@ -295,7 +371,7 @@ const CheckoutView = () => {
                                                 วันที่ที่ใช้บริการ
                                             </Typography>
                                             <Typography sx={{ fontSize: '18px', fontWeight: 'bold', padding: '4px' }}>
-                                                {date}
+                                                {formattedData}
                                             </Typography>
                                         </Grid>
                                         <Grid item xs={12} md={6}>
@@ -433,6 +509,15 @@ const CheckoutView = () => {
                                                             overflow: 'auto',
                                                         },
                                                     }}
+                                                    disabled={!AutocompleteState.district}
+                                                    sx={{
+                                                        '&.Mui-disabled': {
+                                                            backgroundColor: '#bdbdbd',
+                                                        },
+                                                        '& .MuiInputBase-root.Mui-disabled': {
+                                                            backgroundColor: '#bdbdbd',
+                                                        },
+                                                    }}
                                                 />
                                             </Box>
                                         </Grid>
@@ -454,6 +539,15 @@ const CheckoutView = () => {
                                                             overflow: 'auto',
                                                         },
                                                     }}
+                                                    disabled={!AutocompleteState.setDistrict}
+                                                    sx={{
+                                                        '&.Mui-disabled': {
+                                                            backgroundColor: '#bdbdbd',
+                                                        },
+                                                        '& .MuiInputBase-root.Mui-disabled': {
+                                                            backgroundColor: '#bdbdbd',
+                                                        },
+                                                    }}
                                                 />
                                             </Box>
                                         </Grid>
@@ -472,6 +566,15 @@ const CheckoutView = () => {
                                                         style: {
                                                             maxHeight: '250px',
                                                             overflow: 'auto',
+                                                        },
+                                                    }}
+                                                    disabled={!AutocompleteState.zip_code}
+                                                    sx={{
+                                                        '&.Mui-disabled': {
+                                                            backgroundColor: '#bdbdbd',
+                                                        },
+                                                        '& .MuiInputBase-root.Mui-disabled': {
+                                                            backgroundColor: '#bdbdbd',
                                                         },
                                                     }}
                                                 />

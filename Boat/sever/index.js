@@ -75,6 +75,20 @@ app.get('/getTicketboat', (req, res) => {
   })
 })
 
+app.get('/getTicketboat/:id', (req, res) => {
+  const { id } = req.params;
+  db.query('SELECT * FROM ticketboat WHERE booking_id = ? ORDER BY creat_date DESC', [id], (err, result) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).json({ error: 'Database query failed' });
+    }
+    if (result.length === 0) {
+      return res.status(404).json({ message: 'No ticket found for this booking ID' });
+    }
+    res.json({data:result[0]}); // ส่งข้อมูลเฉพาะตัวแรก
+  });
+});
+
 /**
  * @swagger
  * /getCount:
@@ -220,7 +234,7 @@ app.post('/addTicketboat', (req, res) => {
     adults,
     children,
     total_people,
-    vat, 
+    vat,
     amount,
     total_price,
     first_name,
@@ -250,7 +264,7 @@ app.post('/addTicketboat', (req, res) => {
     adults,
     children,
     total_people,
-    vat, 
+    vat,
     amount,
     total_price,
     first_name,
@@ -309,11 +323,12 @@ const transporter = nodemailer.createTransport({
 
 app.post('/send-email', async (req, res) => {
   let { id, date, time, adults, children, total_people, total_price, first_name, last_name, email, tel, address, creat_date } = req.body;
+  console.log(email)
   const adultTotal = adults * 1500;
   const childrenTotal = children * 1000;
   const vat = 7
-  const totalVat = (total_price * vat / 100)
-  total_price = total_price + totalVat;
+  const totalVat = (((adultTotal + childrenTotal) * vat) / 100)
+  total_price = total_price;
 
   date = format(new Date(date), 'dd/MM/yyyy');
 
@@ -448,7 +463,7 @@ app.get('/zipcode', async (req, res) => {
 });
 
 
-app.post('/login',  (req, res) => {
+app.post('/login', (req, res) => {
   const { username, password } = req.body;
   let query = 'SELECT * FROM users WHERE username = ?';
 
@@ -463,38 +478,36 @@ app.post('/login',  (req, res) => {
     }
 
     const user = result[0];
-    if(user.password === password) {
-      console.log(user)
-      const { id, username, role,first_name,last_name } = user;
-      const token = jwt.sign({ id, username,role,first_name,last_name}, secret, { expiresIn: '1h' });
-      res.json(token); 
-    }else{
+    if (user.password === password) {
+      const { id, username, role, first_name, last_name } = user;
+      const token = jwt.sign({ id, username, role, first_name, last_name }, secret, { expiresIn: '1h' });
+      res.json(token);
+    } else {
       return res.status(401).send('Invalid password');
     }
   });
 });
 app.post('/authen', (req, res) => {
   const authHeader = req.headers.authorization;
-  
+
   if (!authHeader) {
-      return res.status(401).send('Authorization header is required');
+    return res.status(401).send('Authorization header is required');
   }
 
   const token = authHeader.split(' ')[1];
-  
+
   if (!token) {
-      return res.status(401).send('Token is required');
+    return res.status(401).send('Token is required');
   }
 
   try {
-      const decoded = jwt.verify(token, secret);
-      res.json(decoded);
+    const decoded = jwt.verify(token, secret);
+    res.json(decoded);
   } catch (error) {
-      console.error('Error verifying token:', error.message);
-      res.status(401).send('Invalid or expired token');
+    console.error('Error verifying token:', error.message);
+    res.status(401).send('Invalid or expired token');
   }
 });
-
 
 app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`);
