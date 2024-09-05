@@ -82,7 +82,6 @@ const CheckoutView = () => {
             const responseProvince = await getProvince();
             setProvince(responseProvince);
 
-
             const responseAmphur = await getDistricts();
             if (districtDefaut == []) {
                 setDistrict(responseAmphur)

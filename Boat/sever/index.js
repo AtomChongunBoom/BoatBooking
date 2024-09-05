@@ -6,8 +6,12 @@ const cors = require('cors');
 const fs = require('fs');
 const { format } = require('date-fns');
 const handlebars = require('handlebars');
+const bcrypt = require('bcrypt');
 require('dotenv').config(); // To use environment variables
 const path = require('path');
+
+const jwt = require('jsonwebtoken');
+const secret = 'secretLogin';
 
 const QRCode = require('qrcode');
 
@@ -321,7 +325,7 @@ app.post('/send-email', async (req, res) => {
     adultTotal, childrenTotal, totalVat, total_price, qrCodeUrl
   };
 
-  console.log(qrCodeUrl);
+  // console.log(qrCodeUrl);
 
   if (!email) {
     console.error('Email is required but not provided:', req.body);
@@ -423,7 +427,6 @@ app.get('/subdistricts', async (req, res) => {
   });
 });
 
-
 app.get('/zipcode', async (req, res) => {
   const subdistrictId = req.query.subdistrict_id;
 
@@ -442,6 +445,54 @@ app.get('/zipcode', async (req, res) => {
     }
     res.send(result);
   });
+});
+
+
+app.post('/login',  (req, res) => {
+  const { username, password } = req.body;
+  let query = 'SELECT * FROM users WHERE username = ?';
+
+  db.query(query, [username], async (err, result) => {
+    if (err) {
+      console.error('Error querying database:', err);
+      return res.status(500).send('Error querying database');
+    }
+
+    if (result.length === 0) {
+      return res.status(401).send('User not found');
+    }
+
+    const user = result[0];
+    if(user.password === password) {
+      console.log(user)
+      const { id, username, role,first_name,last_name } = user;
+      const token = jwt.sign({ id, username,role,first_name,last_name}, secret, { expiresIn: '1h' });
+      res.json(token); 
+    }else{
+      return res.status(401).send('Invalid password');
+    }
+  });
+});
+app.post('/authen', (req, res) => {
+  const authHeader = req.headers.authorization;
+  
+  if (!authHeader) {
+      return res.status(401).send('Authorization header is required');
+  }
+
+  const token = authHeader.split(' ')[1];
+  
+  if (!token) {
+      return res.status(401).send('Token is required');
+  }
+
+  try {
+      const decoded = jwt.verify(token, secret);
+      res.json(decoded);
+  } catch (error) {
+      console.error('Error verifying token:', error.message);
+      res.status(401).send('Invalid or expired token');
+  }
 });
 
 

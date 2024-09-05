@@ -1,118 +1,114 @@
-import React, { useState } from 'react';
-import { Box, Container, Typography, TextField, Button, Link, InputAdornment, IconButton, Paper, Grid } from '@mui/material';
-import { Visibility, VisibilityOff } from '@mui/icons-material';
+import React from 'react';
+import {
+  Box,
+  Button,
+  Checkbox,
+  FormControlLabel,
+  TextField,
+  Typography,
+  Link,
+  useMediaQuery,
+  useTheme
+} from '@mui/material';
+import { UserLogin } from '../../service/user_service';
+import { AlertError } from '../../component/popupAlert';
+import { useNavigate } from 'react-router-dom';
+import Cookies from 'js-cookie';
 
 const LoginPage = () => {
-  const [showPassword, setShowPassword] = useState(false);
-  const [email, setEmail] = useState('sofia@devias.io');
-  const [password, setPassword] = useState('');
 
-  const handleClickShowPassword = () => setShowPassword(!showPassword);
+  const navigate = useNavigate();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const [userdata, setUserData] = React.useState({
+    username:'',
+    password: ''
+  });
+
+  const handleLogin = async (req, res) => {
+    if(userdata.password && userdata.username){
+      try {
+        const token = await UserLogin(userdata)
+        if(token){
+          Cookies.set('token', token, { expires: 7 });
+          navigate('/admin')
+        }
+      }catch(err) {
+        AlertError('ล็อกอินผิดพลาด', 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง')
+      }
+    }else{
+      AlertError('ล็อกอินผิดพลาด','กรุณากรอกข้อมูล')
+      return;
+    }
+  };
+
+  const handleChange = (event) => {
+    const { name, value } = event.target;
+    setUserData(prevData => ({
+      ...prevData,
+      [name]: value
+    }));
+  };
 
   return (
-    <Box sx={{ display: 'flex', minHeight: '100vh', bgcolor: '#f5f5f5' }}>
-      <Container component="main" maxWidth="lg" sx={{ display: 'flex', alignItems: 'center' }}>
-        <Grid container>
-          {/* Left side - Login form */}
-          <Grid item xs={12} md={6}>
-            <Box
-              sx={{
-                my: 8,
-                mx: 4,
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'flex-start',
-              }}
-            >
-              <Typography component="h1" variant="h5" sx={{ mb: 2 }}>
-                Sign in
-              </Typography>
-              <Typography variant="body2" sx={{ mb: 3 }}>
-                Don't have an account? <Link href="#" color="primary">Sign up</Link>
-              </Typography>
-              <TextField
-                margin="normal"
-                required
-                fullWidth
-                id="email"
-                label="Email address"
-                name="email"
-                autoComplete="email"
-                autoFocus
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                sx={{ mb: 2 }}
-              />
-              <TextField
-                margin="normal"
-                required
-                fullWidth
-                name="password"
-                label="Password"
-                type={showPassword ? 'text' : 'password'}
-                id="password"
-                autoComplete="current-password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                InputProps={{
-                  endAdornment: (
-                    <InputAdornment position="end">
-                      <IconButton
-                        aria-label="toggle password visibility"
-                        onClick={handleClickShowPassword}
-                        edge="end"
-                      >
-                        {showPassword ? <VisibilityOff /> : <Visibility />}
-                      </IconButton>
-                    </InputAdornment>
-                  ),
-                }}
-                sx={{ mb: 2 }}
-              />
-              <Link href="#" variant="body2" sx={{ mb: 2 }}>
-                Forgot password?
-              </Link>
-              <Button
-                type="submit"
-                fullWidth
-                variant="contained"
-                sx={{ mt: 3, mb: 2, bgcolor: '#6366F1', '&:hover': { bgcolor: '#4338CA' } }}
-              >
-                Sign In
-              </Button>
-              <Paper
-                elevation={0}
-                sx={{
-                  p: 2,
-                  bgcolor: '#FFF7ED',
-                  borderRadius: 1,
-                  border: '1px solid #FDBA74',
-                  width: '100%',
-                }}
-              >
-                <Typography variant="body2" sx={{ color: '#C2410C' }}>
-                  Use sofia@devias.io with password Secret1
-                </Typography>
-              </Paper>
-            </Box>
-          </Grid>
-          
-          {/* Right side - Welcome message */}
-          <Grid item xs={12} md={6} sx={{ bgcolor: '#111827', color: 'white', p: 8, display: { xs: 'none', md: 'flex' }, flexDirection: 'column', justifyContent: 'center' }}>
-            <Typography variant="h4" sx={{ mb: 2 }}>
-              Welcome to <span style={{ color: '#10B981' }}>Devias Kit</span>
-            </Typography>
-            <Typography variant="body1">
-              A professional template that comes with ready-to-use MUI components.
-            </Typography>
-            {/* Placeholder for the decorative images */}
-            <Box sx={{ mt: 4, position: 'relative', height: 200 }}>
-              <Paper elevation={3} sx={{ position: 'absolute', top: 0, right: 0, width: 200, height: 100, bgcolor: 'white', borderRadius: 2 }} />
-              <Paper elevation={3} sx={{ position: 'absolute', bottom: 0, left: 0, width: 200, height: 100, bgcolor: 'white', borderRadius: 2 }} />
-            </Box>
-          </Grid>
-        </Grid>
-      </Container>
+    <Box sx={{
+      display: 'flex',
+      flexDirection: isMobile ? 'column' : 'row',
+      minHeight: '100vh',
+      bgcolor: '#1976d2',
+      color: 'white',
+    }}>
+      <Box sx={{
+        flex: isMobile ? 'none' : 1,
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        p: isMobile ? 2 : 4,
+        textAlign: isMobile ? 'center' : 'left',
+      }}>
+        <Typography variant={isMobile ? "h4" : "h3"} component="h1" gutterBottom>
+          WELCOME
+        </Typography>
+        <Typography variant={isMobile ? "h5" : "h4"} component="h2" gutterBottom>
+          TicketShare Boat Rental Admin
+        </Typography>
+        <Box sx={{ maxHeight: '40%', overflowY: 'auto' }}>
+          <Typography variant="body1">
+            ระบบการจัดการเช่าเรือแบบ Share Ticket ที่ออกแบบมาเพื่อการบริหารจัดการโดยเฉพาะ
+            คุณสามารถจัดการข้อมูลการจองตั๋วแบบแชร์
+          </Typography>
+        </Box>
+      </Box>
+      <Box sx={{
+        width: isMobile ? '100%' : 500,
+        bgcolor: 'white',
+        p: isMobile ? 2 : 4,
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center'
+      }}>
+        <Typography variant="h5" component="h2" gutterBottom color={'#1976d2'} fontWeight={'bold'} fontSize={'32px'}>
+          Sign in
+        </Typography>
+        <Typography variant="body2" color="text.secondary" gutterBottom>
+          สำหรับ Admin หรือ Sale เท่านั้น!
+        </Typography>
+        <TextField label="User Name" variant="outlined" margin="normal" fullWidth  value={userdata.username} name="username" onChange={handleChange}/>
+        <TextField label="Password" type="password" variant="outlined" margin="normal" fullWidth value={userdata.password} name="password" onChange={handleChange} />
+        <Box sx={{
+          display: 'flex',
+          flexDirection: isMobile ? 'column' : 'row',
+          justifyContent: 'space-between',
+          alignItems: isMobile ? 'flex-start' : 'center',
+          my: 2
+        }}>
+          <Box></Box>
+          <Link href="#" variant="body2" sx={{ mt: isMobile ? 1 : 0 }}>Forgot Password?</Link>
+        </Box>
+        <Button variant="contained" color="primary" size="large" fullWidth onClick={handleLogin}>
+          Sign in
+        </Button>
+      </Box>
     </Box>
   );
 };

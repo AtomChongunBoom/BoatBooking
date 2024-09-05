@@ -283,18 +283,27 @@ const BookingView = () => {
   }));
 
   const handleCustomerText = () => {
-    if (disable) {
-      // return (
-      // <Box>
-      //   <Typography variant="h6" gutterBottom className="mb-2" sx={{ color: 'green', fontWeight: 'bold' }}>
-      //     ขนะนี้มีที่นั่งเหลืออยู่ {5 - countPeople} ที่นั่ง
-      //   </Typography>
+   if(!visible){
+    return (
+      <Box className="text-center" sx={{ padding: 1, display: 'flex' }}>
+        <Box m={1}>
+          <BsCheckCircleFill size={48} color='green' />
+        </Box>
+        <Box>
+          <Box>
+            <Typography variant="h6" gutterBottom className="mb-2" sx={{ color: 'green', fontWeight: 'bold' }}>
+              กรุณาเลือกรอบโดยสาร
+            </Typography>
 
-      //   <Typography gutterBottom className="mb-2" sx={{ color: '#b0b0b0', fontWeight: 'bold', fontSize: '16px' }}>
-      //     รีบจองก่อนที่จะเต็ม
-      //   </Typography>
-      // </Box>
-      // )
+            <Typography gutterBottom className="mb-2" sx={{ color: '#b0b0b0', fontWeight: 'bold', fontSize: '16px' }}>
+              กรุณากรอกข้อมูลจำนวนคน
+            </Typography>
+          </Box>
+        </Box>
+      </Box>
+    )
+   }else{
+    if (disable) {
       return (
         <Box className="text-center" sx={{ padding: 1, display: 'flex' }}>
           <Box m={1}>
@@ -331,6 +340,7 @@ const BookingView = () => {
       )
     }
   }
+   }
 
   return (
     <Box>
@@ -421,7 +431,7 @@ const BookingView = () => {
                       ))}
                     </Grid>
                   </Grid>
-                  {visible && (<Grid item xs={12} md={4}>
+                  <Grid item xs={12} md={4}>
                     {handleCustomerText()}
 
                     <Box sx={{ padding: 1 }} >
@@ -466,7 +476,7 @@ const BookingView = () => {
                         ชำระเงิน
                       </Button>
                     </Box>
-                  </Grid>)}
+                  </Grid>
                 </Grid>
               </Paper>
 

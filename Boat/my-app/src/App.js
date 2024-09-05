@@ -20,33 +20,33 @@ function App() {
   return (
     <ThemeProvider theme={theme}>
       <Router>
-      {/* <AppBar position="static" color="transparent" sx={{zIndex:999,position:'fixed',x:0,y:0 ,bgcolor:'white'}}> */}
-      <AppBar position="static" color="transparent" >
-        <Toolbar>
-          <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-              <img 
-                src="https://ik.imagekit.io/tvlk/image/imageResource/2023/06/29/1688022859636-852e89a793fd448275fdc71c91824f06.png?tr=q-75" 
-                alt="Logo" 
+        {/* <AppBar position="static" color="transparent" sx={{zIndex:999,position:'fixed',x:0,y:0 ,bgcolor:'white'}}> */}
+        {/* <AppBar position="static" color="transparent" sx={{boxShadow:2}} >
+          <Toolbar>
+            <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+              <img
+                src="https://ik.imagekit.io/tvlk/image/imageResource/2023/06/29/1688022859636-852e89a793fd448275fdc71c91824f06.png?tr=q-75"
+                alt="Logo"
                 style={{ height: '40px' }} // Adjust the height as needed
               />
             </Typography>
-          <Button color="inherit" component={Link} to="/" >หน้าหลัก</Button>
-          <Button color="inherit" component={Link} to="/admin">Admin</Button>
-        </Toolbar>
-      </AppBar>
-      <Routes>
-        <Route path="/" element={<BookingView />} />
+            <Button color="inherit" component={Link} to="/" >หน้าหลัก</Button>
+            <Button color="inherit" component={Link} to="/login">Admin</Button>
+          </Toolbar>
+        </AppBar> */}
+        <Routes>
+          <Route path="/" element={<BookingView />} />
 
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/admin/dashboard" element={<Dashboard />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/admin/dashboard" element={<Dashboard />} />
 
-        <Route path="/admin" element={<CSMTable />} />
-        <Route path="/admin/edit" element={<CandidateBooking />} />
-        <Route path="/payment" element={<Checkout />} />
-        <Route path="/payment/success" element={<PaymentSuccessPage />} />
-        <Route path="/checkout" element={<CheckoutView />} />
-      </Routes>
-    </Router>
+          <Route path="/admin" element={<CSMTable />} />
+          <Route path="/admin/edit" element={<CandidateBooking />} />
+          <Route path="/payment" element={<Checkout />} />
+          <Route path="/payment/success" element={<PaymentSuccessPage />} />
+          <Route path="/checkout" element={<CheckoutView />} />
+        </Routes>
+      </Router>
     </ThemeProvider>
   );
 }
