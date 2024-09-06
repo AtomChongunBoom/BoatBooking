@@ -270,6 +270,7 @@ const CheckoutView = () => {
                 [name]: newValue.value,
                 ["zip_code"]: null,
             });
+            console.log(checkoutData.zip_code)
             setAutocomplateState({
                 ...AutocompleteState,
                 ["district"]: true,
@@ -283,7 +284,6 @@ const CheckoutView = () => {
         else if (name === "province_id" && newValue?.value) {
             const currentDistricts = districtDefaut.filter(p => newValue.value === p.province_id);
             setCheckoutData({
-                ...checkoutData,
                 [name]: newValue.value,
                 ["district_id"]: null,
                 ["subdistrict_id"]: null,

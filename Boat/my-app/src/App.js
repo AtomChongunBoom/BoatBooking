@@ -39,9 +39,9 @@ function App() {
 
           <Route path="/login" element={<LoginPage />} />
           <Route path="/admin/dashboard" element={<Dashboard />} />
-
           <Route path="/admin" element={<CSMTable />} />
           <Route path="/admin/edit/:id" element={<CandidateBooking />} />
+          
           <Route path="/payment" element={<Checkout />} />
           <Route path="/payment/success" element={<PaymentSuccessPage />} />
           <Route path="/checkout" element={<CheckoutView />} />
