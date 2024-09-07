@@ -49,14 +49,6 @@ const CheckoutView = () => {
         district: false, setDistrict: false, zip_code: false
     }) //
 
-    const [adults, setAdults] = useState(0); // Initial value can be adjusted
-    const [children, setChildren] = useState(0); // Initial value can be adjusted
-    const [time, setTime] = useState(''); // Initial value can be adjusted
-    const [date, setDate] = useState(''); // Initial value can be adjusted
-    const [total_price, setTotal_price] = useState(0); // Initial value can be adjusted
-    let vat = (total_price * 7) / 100
-    vat = parseInt(vat, 10);
-
     const [checkoutData, setCheckoutData] = useState({})
     const [checkboxValues, setCheckboxValues] = useState({
         serviceTerms: false,
@@ -79,21 +71,26 @@ const CheckoutView = () => {
 
         const total_price = parseInt(Cookies.get('total_prices'), 10) || 0;
 
-        // ตรวจสอบว่าค่าเป็นค่าว่างหรือไม่
-        // if (!adults || !children || !time || !date || !total_price) {
-        //     // ถ้าค่าที่ได้รับไม่ถูกต้อง ให้ navigate ไปหน้าหลัก
-        //     navigate('/');
-        // } else {
-        //     // ดำเนินการต่อเมื่อข้อมูลครบถ้วน
-        setTotal_price(total_price)
-        setAdults(adults)
-        setChildren(children)
-        setTime(time)
-        setDate(date)
+
+        let vat = (total_price * 7) / 100
+        vat = parseInt(vat, 10);
+
+        setCheckoutData({
+            id:uuidv4(),
+            adults: adults,
+            children: children,
+            time: time,
+            date: date,
+            total_price: total_price+vat,
+            total_people: adults + children,
+            vat: vat,
+            amount: total_price,
+            creat_date: new Date().toISOString()
+        })
         const resDate = format(new Date(date), 'dd/MM/yyyy');
         setFormattedData(resDate);
         // }
-    }, [checkboxValues, checkoutData]);
+    }, []);
 
     const init = async () => {
         try {
@@ -126,15 +123,16 @@ const CheckoutView = () => {
         };
 
         setCheckboxValues(updatedCheckboxValues);
+
     };
 
     const handleChange = (event) => {
         const { name, value } = event.target;
-        console.log(name, value)
-        setCheckoutData({
-            ...checkoutData,
+        setCheckoutData(prevData => ({
+            ...prevData,
             [name]: value
-        });
+        }));
+        console.log(checkoutData)
     };
 
     const validateBookingData = (data) => {
@@ -159,163 +157,107 @@ const CheckoutView = () => {
         return { isValid: true };
     };
 
+    const formatDate = (dateString) => {
+        try {
+          const date = new Date(dateString);
+          if (isNaN(date.getTime())) {
+            throw new Error('Invalid date');
+          }
+          
+          const day = String(date.getDate()).padStart(2, '0');
+          const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are 0-indexed
+          const year = date.getFullYear();
+          
+          return `${day}-${month}-${year}`;
+        } catch (error) {
+          throw new Error('Invalid date format. Please enter a valid date.');
+        }
+      };
+
 
     const handleSubmitted = async () => {
-        // ตรวจสอบ checkboxes
-        const allChecked = Object.values(checkboxValues).every(value => value === true);
-        if (!allChecked) {
-            AlertError('เกิดข้อผิดพลาด', 'กรุณากดยอมรับเงื่อนไข');
-            return;
-        }
-
-        const typeDate = new Date(date);
-
-        const bookingData = {
-            id: uuidv4(),
-            date: format(typeDate, 'yyyy-MM-dd'),
-            time: time,
-            adults: adults,
-            children: children,
-            total_people: adults + children,
-            vat: vat,
-            amount: total_price,
-            total_price: total_price + vat,
-            first_name: checkoutData.firstName,
-            last_name: checkoutData.lastName,
-            email: checkoutData.email,
-            tel: checkoutData.phone,
-            address: checkoutData.address,
-            province: checkoutData.province_id,
-            district: checkoutData.district_id,
-            subdistrict: checkoutData.subdistrict_id,
-            zip_code: checkoutData.zip_code,
-            note: checkoutData.note,
-            creat_date: new Date().toISOString()
-        };
-
-        // ตรวจสอบความถูกต้องของข้อมูล
-        const validationResult = validateBookingData(bookingData);
-        if (!validationResult.isValid) {
-            AlertError('เกิดข้อผิดพลาด', `กรุณากรอกข้อมูลให้ครบถ้วน: ${validationResult.emptyFields.join(', ')}`);
-            return;
-        }
-
         try {
-            await AddTicketboat(bookingData);
+            // Check if all checkboxes are checked
+            if (!Object.values(checkboxValues).every(value => value === true)) {
+                throw new Error('กรุณากดยอมรับเงื่อนไข');
+            }
+
+            const result = formatDate(checkoutData.date);
+            checkoutData.date = result;
+            console.log('Checked data',checkoutData)
+            const validationResult = validateBookingData(checkoutData);
+            if (!validationResult.isValid) {
+                throw new Error(`กรุณากรอกข้อมูลให้ครบถ้วน: ${validationResult.emptyFields.join(', ')}`);
+            }
+
+            //Add ticket boat
+            await AddTicketboat(checkoutData);
+
+            //Send email
+            await SendEmail(checkoutData);
+
+            //Create Omise source
+            const omiseRes = await CreateSource(checkoutData.amount);
+
+            //Get payment
+            const paymentData = {
+                "ticketID": checkoutData.id,
+                "source": omiseRes.id,
+                "amount": checkoutData.amount,
+            };
+            const paymentState = await Getpayment(paymentData);
+
+            // Remove cookies
+            ['adults', 'children', 'time', 'total_prices', 'date'].forEach(cookie => Cookies.remove(cookie));
+
+            // Show success message
             AlertSuccess('สำเร็จ', 'ข้อมูลการจองของคุณถูกบันทึกเรียบร้อยแล้ว');
+
+            // Redirect to payment page
+            window.location.href = paymentState.redirectUrl;
+
         } catch (error) {
-            console.error('Error adding ticket boat:', error);
-            AlertError('เกิดข้อผิดพลาด', 'ไม่สามารถบันทึกการจองได้ โปรดลองอีกครั้งในภายหลัง');
-            return;
+            console.error('Error in handleSubmitted:', error);
+            AlertError('เกิดข้อผิดพลาด', error.message);
         }
-
-        try {
-            await SendEmail(bookingData);
-        } catch (error) {
-            AlertError('เกิดข้อผิดพลาด', 'ไม่สามารถส่งอีเมลได้')
-        }
-
-        let omiseRes;
-        try {
-            omiseRes = await CreateSource(bookingData.amount);
-            console.log("omiseRes", omiseRes);
-        } catch (error) {
-            console.error('Error creating source:', error);
-            AlertError('เกิดข้อผิดพลาด', 'ไม่สามารถสร้างแหล่งการชำระเงินได้');
-            return;
-        }
-
-        const paymentData = {
-            "ticketID": bookingData.id,
-            "source": omiseRes.id,
-            "amount": bookingData.amount,
-        };
-
-        let paymentState = {};
-        try {
-            paymentState = await Getpayment(paymentData);
-        } catch (error) {
-            console.error('Error getting payment:', error);
-            AlertError('เกิดข้อผิดพลาด', 'ไม่สามารถดำเนินการชำระเงินได้');
-            return;
-        }
-
-        const cookiesToRemove = ['adults', 'children', 'time', 'total_prices', 'date'];
-        cookiesToRemove.forEach(cookie => Cookies.remove(cookie));
-
-        window.location.href = paymentState.redirectUrl;
     };
 
 
     const handleChangeAutocomplate = async (event, newValue, name) => {
-        // Log the new value to confirm it's being passed correctly
-        // console.log("New Value:", newValue);
-
-        // Create a new checkoutData object based on the current input
-        let updatedData = { ...checkoutData };
-
         if (newValue) {
-            if (name === 'zip_code') {
-                updatedData[name] = newValue.zip_code;
-            }
-        }
-
-        setCheckoutData(updatedData);
-
-        // Handle subdistrict selection
-        if (name === "subdistrict_id" && newValue?.value) {
-            const currentSubdistricts = subdistrictDefaut.filter(d => newValue.value === d.value);
-            setCheckoutData({
-                ...checkoutData,
-                [name]: newValue.value,
-                ["zip_code"]: null,
+            setCheckoutData(prevData => {
+                const newData = { ...prevData };
+                if (name === 'zip_code') {
+                    newData[name] = newValue.zip_code;
+                } else if (name === 'subdistrict') {
+                    newData[name] = newValue.value;
+                    newData["zip_code"] = ""
+                    const currentSubdistricts = subdistrictDefaut.filter(d => newValue.value === d.value);
+                    setZipCode(currentSubdistricts);  // Set zip code based on the current subdistrict
+                    setAutocomplateState({province: true, district: true, setDistrict: true, zip_code: true});
+                } else if (name === "province") {
+                    newData[name] = newValue.value;
+                    newData["district"] = null
+                    newData["subdistrict"] = null
+                    newData["zip_code"] = null
+                    setDistrict(districtDefaut.filter(d => newValue.value === d.province_id));
+                    setAutocomplateState({
+                        province: true,
+                        district: true,
+                        subdistrict: false,
+                        zip_code: false
+                    });
+                } else if (name === "district") {
+                    newData[name] = newValue.value;
+                    newData["subdistrict"] = null
+                    newData["zip_code"] = null
+                    setSubdistrict(subdistrictDefaut.filter(d => newValue.value === d.district_id));
+                    setAutocomplateState({province: true, district: true, setDistrict: true, zip_code: false});
+                }
+                return newData;
             });
-            console.log(checkoutData.zip_code)
-            setAutocomplateState({
-                ...AutocompleteState,
-                ["district"]: true,
-                ["setDistrict"]: true,
-                ["zip_code"]: true
-            })
-            setZipCode(currentSubdistricts);  // Set zip code based on the current subdistrict
         }
-
-        // Handle province selection
-        else if (name === "province_id" && newValue?.value) {
-            const currentDistricts = districtDefaut.filter(p => newValue.value === p.province_id);
-            setCheckoutData({
-                [name]: newValue.value,
-                ["district_id"]: null,
-                ["subdistrict_id"]: null,
-                ["zip_code"]: null,
-            });
-            setAutocomplateState({
-                ...AutocompleteState,
-                ["district"]: true,
-                ["setDistrict"]: false,
-                ["zip_code"]: false
-            })
-            setDistrict(currentDistricts);
-        }
-
-        // Handle district selection
-        else if (name === "district_id" && newValue?.value) {
-            const currentSubdistricts = subdistrictDefaut.filter(d => newValue.value === d.district_id);
-            setCheckoutData({
-                ...checkoutData,
-                [name]: newValue.value,
-                ["subdistrict_id"]: null,
-                ["zip_code"]: null,
-            });
-            setAutocomplateState({
-                ...AutocompleteState,
-                ["district"]: true,
-                ["setDistrict"]: true,
-                ["zip_code"]: false
-            })
-            setSubdistrict(currentSubdistricts);
-        }
-
+        console.log(checkoutData)
     };
 
     return (
@@ -379,7 +321,7 @@ const CheckoutView = () => {
                                                 เวลา
                                             </Typography>
                                             <Typography sx={{ fontSize: '18px', fontWeight: 'bold', padding: '4px' }}>
-                                                {time}
+                                                {checkoutData.time}
                                             </Typography>
                                         </Grid>
                                         <Grid item xs={12} md={6}>
@@ -387,7 +329,7 @@ const CheckoutView = () => {
                                                 จำนวนผู้โดยสาร
                                             </Typography>
                                             <Typography sx={{ fontSize: '18px', fontWeight: 'bold', padding: '4px' }}>
-                                                ผู้ใหญ่ {adults}  คน และ เด็ก {children} คน
+                                                ผู้ใหญ่ {checkoutData.adults}  คน และ เด็ก {checkoutData.children} คน
                                             </Typography>
                                         </Grid>
                                     </Grid>
@@ -404,7 +346,7 @@ const CheckoutView = () => {
                                             <Typography>ชื่อ</Typography>
                                             <Box marginTop={'16px'}>
                                                 <TextField
-                                                    name="firstName"
+                                                    name="first_name"
                                                     margin='16px'
                                                     fullWidth
                                                     label="ชื่อ"
@@ -418,7 +360,7 @@ const CheckoutView = () => {
                                             <Typography>นามสกุล</Typography>
                                             <Box marginTop={'16px'}>
                                                 <TextField
-                                                    name="lastName"
+                                                    name="last_name"
                                                     margin='16px'
                                                     fullWidth
                                                     label="นามสกุล"
@@ -446,7 +388,7 @@ const CheckoutView = () => {
                                             <Typography>เบอร์โทรศัพท์</Typography>
                                             <Box marginTop={'16px'}>
                                                 <TextField
-                                                    name="phone"
+                                                    name="tel"
                                                     margin='16px'
                                                     fullWidth
                                                     label="เบอร์โทรศัพท์"
@@ -478,8 +420,8 @@ const CheckoutView = () => {
                                                     name="province"
                                                     getOptionLabel={(option) => option.label}
                                                     renderInput={(params) => <TextField {...params} label="จังหวัด" />}
-                                                    value={province.find(p => p.value === checkoutData.province_id) || null}
-                                                    onChange={(e, newValue) => handleChangeAutocomplate(e, newValue, "province_id")}
+                                                    value={province.find(p => p.value === checkoutData.province) || null}
+                                                    onChange={(e, newValue) => handleChangeAutocomplate(e, newValue, "province")}
                                                     fullWidth
                                                     disableListWrap
                                                     ListboxProps={{
@@ -500,8 +442,8 @@ const CheckoutView = () => {
                                                     name="district"
                                                     getOptionLabel={(option) => option.label}
                                                     renderInput={(params) => <TextField {...params} label="เขต / อำเภอ" />}
-                                                    value={district.find(p => p.value === checkoutData.district_id) || null}
-                                                    onChange={(e, newValue) => handleChangeAutocomplate(e, newValue, "district_id")}
+                                                    value={district.find(p => p.value === checkoutData.district) || null}
+                                                    onChange={(e, newValue) => handleChangeAutocomplate(e, newValue, "district")}
                                                     fullWidth
                                                     ListboxProps={{
                                                         style: {
@@ -530,8 +472,8 @@ const CheckoutView = () => {
                                                     name="SubDistrict"
                                                     getOptionLabel={(option) => option.label}
                                                     renderInput={(params) => <TextField {...params} label="แขวน / ตำบล" />}
-                                                    value={subdistrict.find(p => p.value === checkoutData.subdistrict_id) || null}
-                                                    onChange={(e, newValue) => handleChangeAutocomplate(e, newValue, "subdistrict_id")}
+                                                    value={subdistrict.find(p => p.value === checkoutData.subdistrict) || null}
+                                                    onChange={(e, newValue) => handleChangeAutocomplate(e, newValue, "subdistrict")}
                                                     fullWidth
                                                     ListboxProps={{
                                                         style: {
@@ -559,7 +501,7 @@ const CheckoutView = () => {
                                                     options={zip_code}
                                                     name="zip_code"
                                                     getOptionLabel={(option) => option.zip_code}
-                                                    renderInput={(params) => <TextField {...params} label="รหัสไปรษณีย์" />}
+                                                    renderInput={(params) => <TextField {...params} label="รหัสไปรษณีย์"  name='zip_code' />}
                                                     onChange={(e, newValue) => handleChangeAutocomplate(e, newValue, "zip_code")}
                                                     fullWidth
                                                     ListboxProps={{
@@ -671,7 +613,7 @@ const CheckoutView = () => {
                                 </Box>
                                 <Box>
                                     <Typography gutterBottom fontWeight={'bold'} color={'#1a237e'} fontSize={'20px'}>
-                                        {total_price} บาท
+                                        {checkoutData.amount} บาท
                                     </Typography>
                                 </Box>
                             </Box>
@@ -683,7 +625,7 @@ const CheckoutView = () => {
                                 </Box>
                                 <Box>
                                     <Typography gutterBottom fontWeight={'bold'} color={'#1a237e'} fontSize={'20px'}>
-                                        {vat} บาท
+                                        {checkoutData.vat} บาท
                                     </Typography>
                                 </Box>
                             </Box>
@@ -699,7 +641,7 @@ const CheckoutView = () => {
                                 </Box>
                                 <Box>
                                     <Typography gutterBottom fontWeight={'bold'} color={'#1a237e'} fontSize={'20px'}>
-                                        {total_price + vat} บาท
+                                        {checkoutData.total_price || 0} บาท
                                     </Typography>
                                 </Box>
                             </Box>

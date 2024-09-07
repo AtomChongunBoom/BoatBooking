@@ -7,7 +7,7 @@ export const SendEmail = async (data) => {
         return response.data
     } catch (error) {
         console.error('Error sending email:', error)
-        throw new Error('Failed to send email. Please try again later.')
+        throw new Error('email',error.message);
     }
 }
 
@@ -48,14 +48,11 @@ export const AddTicketboat = async (data) => {
     } catch (error) {
         console.error('Error adding ticket boat:', error);
         if (error.response) {
-            //throw new Error(`Failed to add ticket boat: ${error.response.data.message || 'Unknown error'}`)
-            return []
+            throw new Error(`Failed to add ticket boat: ${error.response.data.message || 'Unknown error'}`)
         } else if (error.request) {
-            //throw new Error('No response received from server. Please check your connection.')
-            return []
+            throw new Error('No response received from server. Please check your connection.')
         } else {
-            // throw new Error('Failed to add ticket boat. Please try again.')
-            return []
+             throw new Error('Failed to add ticket boat. Please try again.')
         }
     }
 };

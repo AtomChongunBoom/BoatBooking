@@ -288,33 +288,9 @@ app.post('/addTicketboat', (req, res) => {
   });
 });
 
-
-
-/**
- * @swagger
- * /send-email:
- *   post:
- *     summary: Send an email
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               to:
- *                 type: string
- *               subject:
- *                 type: string
- *               text:
- *                 type: string
- *     responses:
- *       200:
- *         description: Email sent successfully
- */
 const transporter = nodemailer.createTransport({
   service: 'gmail',
-  secure: false,
+  secure: true, // Changed to true for SSL
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS
@@ -322,50 +298,53 @@ const transporter = nodemailer.createTransport({
 });
 
 app.post('/send-email', async (req, res) => {
-  let { id, date, time, adults, children, total_people, total_price, first_name, last_name, email, tel, address, creat_date } = req.body;
-  console.log(email)
-  const adultTotal = adults * 1500;
-  const childrenTotal = children * 1000;
-  const vat = 7
-  const totalVat = (((adultTotal + childrenTotal) * vat) / 100)
-  total_price = total_price;
-
-  date = format(new Date(date), 'dd/MM/yyyy');
-
-  const qrCodeUrl = await QRCode.toDataURL(id);
-
-  const emailData = {
-    id, date, time, adults, children, total_people,
-    first_name, last_name, email, tel, address,
-    adultTotal, childrenTotal, totalVat, total_price, qrCodeUrl
-  };
-
-  // console.log(qrCodeUrl);
-
-  if (!email) {
-    console.error('Email is required but not provided:', req.body);
-    return res.status(400).send('Missing required fields');
-  }
-
-  const htmlTemplate = fs.readFileSync('email.html', 'utf8');
-  const template = handlebars.compile(htmlTemplate);
-  const htmlToSend = template(emailData);
-
-  const mailOptions = {
-    from: process.env.EMAIL_USER,
-    to: email,
-    subject: "E-Ticket สำหรับการเดินทางเรือของคุณ - [True Lesing / Ayutaya]",
-    html: htmlToSend
-  };
-
-  transporter.sendMail(mailOptions, (error, info) => {
-    if (error) {
-      console.error('Error while sending email: ', error);
-      return res.status(500).send('Failed to send email');
+  try {
+    let { id, date, time, adults, children, total_people, total_price, first_name, last_name, email, tel, address, creat_date } = req.body;
+    
+    if (!email) {
+      console.error('Email is required but not provided:', req.body);
+      return res.status(400).json({ error: 'Missing required fields' });
     }
-    res.status(200).send('Email sent: ' + info.response);
-  });
+
+    console.log('Sending email to:', email);
+
+    const adultTotal = adults * 1500;
+    const childrenTotal = children * 1000;
+    const vat = 7;
+    const totalVat = (((adultTotal + childrenTotal) * vat) / 100);
+    
+    date = format(new Date(date), 'dd/MM/yyyy');
+
+    const qrCodeUrl = await QRCode.toDataURL(id);
+
+    const emailData = {
+      id, date, time, adults, children, total_people,
+      first_name, last_name, email, tel, address,
+      adultTotal, childrenTotal, totalVat, total_price, qrCodeUrl
+    };
+
+    console.log('Email data:', emailData);
+
+    const htmlTemplate = fs.readFileSync('email.html', 'utf8');
+    const template = handlebars.compile(htmlTemplate);
+    const htmlToSend = template(emailData);
+
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: "E-Ticket สำหรับการเดินทางเรือของคุณ - [True Lesing / Ayutaya]",
+      html: htmlToSend // Changed from text to html
+    };
+
+    const info = await transporter.sendMail(mailOptions);
+    console.log('Email sent:', info.response);
+    res.status(200).json({ message: 'Email sent successfully', info: info.response });
+  } catch (error) {
+    console.error('Error in email sending process:', error);
+    res.status(500).json({ error: 'Failed to send email', details: error.message });
+  }
 });
+
 
 const createCharge = (source, amount, ticketId) => {
   return new Promise((resolve, reject) => {

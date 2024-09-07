@@ -9,6 +9,7 @@ import CheckoutView from './page/Booking/Checkout/checkout';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import LoginPage from './page/Login/login_view';
 import Dashboard from './page/CSM/DashBord/dashbord';
+import Resgiter_view from './page/CSM/User/register';
 function App() {
 
   const theme = createTheme({
@@ -38,8 +39,10 @@ function App() {
           <Route path="/" element={<BookingView />} />
 
           <Route path="/login" element={<LoginPage />} />
+
           <Route path="/admin/dashboard" element={<Dashboard />} />
           <Route path="/admin" element={<CSMTable />} />
+          <Route path="/admin/register" element={<Resgiter_view />} />
           <Route path="/admin/edit/:id" element={<CandidateBooking />} />
           
           <Route path="/payment" element={<Checkout />} />
