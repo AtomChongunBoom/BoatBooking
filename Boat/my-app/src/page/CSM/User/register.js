@@ -1,261 +1,410 @@
-import React from 'react';
-import { 
-  Box, 
-  TextField, 
-  MenuItem, 
-  Grid, 
-  Typography, 
-  Container, 
-  Paper
+import React, { useState ,useRef} from 'react';
+import {
+    Box,
+    TextField,
+    MenuItem,
+    Grid,
+    Typography,
+    Container,
+    Paper,
+    Divider,
+    Button,IconButton
 } from '@mui/material';
+import AppBarComponent from '../../../component/appbar';
+import { UserRegister } from '../../../service/user_service';
+import { AlertError } from '../../../component/popupAlert';
+import { CloudUpload } from '@mui/icons-material';
 
 const Resgiter_view = () => {
-  return (
-    <Container maxWidth="md">
-      <Paper elevation={3} sx={{ p: 3, mt: 3 }}>
-        <Typography variant="h5" component="h1" gutterBottom>
-          ระบุข้อมูลส่วนบุคคล
-        </Typography>
-        
-        <Box component="form" noValidate sx={{ mt: 3 }}>
-          <Typography variant="body2" sx={{ bgcolor: 'warning.light', p: 2, mb: 2 }}>
-            บันทึกข้อความ: กรุณากรอกข้อมูลตามความเป็นจริง เพื่อประโยชน์แก่ตัวท่านเอง
-          </Typography>
-          
-          <TextField
-            fullWidth
-            label="เลขบัตรประชาชน"
-            required
-            margin="normal"
-          />
-          
-          <Grid container spacing={2}>
-            <Grid item xs={12} sm={4}>
-              <TextField
-                select
-                fullWidth
-                label="คำนำหน้า"
-                required
-                margin="normal"
-              >
-                <MenuItem value="นาย">นาย</MenuItem>
-                <MenuItem value="นาง">นาง</MenuItem>
-                <MenuItem value="นางสาว">นางสาว</MenuItem>
-              </TextField>
-            </Grid>
-            <Grid item xs={12} sm={4}>
-              <TextField
-                fullWidth
-                label="ชื่อ"
-                required
-                margin="normal"
-              />
-            </Grid>
-            <Grid item xs={12} sm={4}>
-              <TextField
-                fullWidth
-                label="นามสกุล"
-                required
-                margin="normal"
-              />
-            </Grid>
-          </Grid>
-          
-          <TextField
-            select
-            fullWidth
-            label="เพศ"
-            required
-            margin="normal"
-          >
-            <MenuItem value="ชาย">ชาย</MenuItem>
-            <MenuItem value="หญิง">หญิง</MenuItem>
-          </TextField>
-          
-          <Grid container spacing={2}>
-            <Grid item xs={12} sm={4}>
-              <TextField
-                select
-                fullWidth
-                label="วัน"
-                required
-                margin="normal"
-              >
-                {[...Array(31)].map((_, i) => (
-                  <MenuItem key={i} value={i + 1}>{i + 1}</MenuItem>
-                ))}
-              </TextField>
-            </Grid>
-            <Grid item xs={12} sm={4}>
-              <TextField
-                select
-                fullWidth
-                label="เดือน"
-                required
-                margin="normal"
-              >
-                {['มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน', 
-                  'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'].map((month, index) => (
-                  <MenuItem key={index} value={month}>{month}</MenuItem>
-                ))}
-              </TextField>
-            </Grid>
-            <Grid item xs={12} sm={4}>
-              <TextField
-                select
-                fullWidth
-                label="ปีเกิด"
-                required
-                margin="normal"
-              >
-                {[...Array(100)].map((_, i) => (
-                  <MenuItem key={i} value={2024 - i}>{2024 - i}</MenuItem>
-                ))}
-              </TextField>
-            </Grid>
-          </Grid>
-          
-          <Grid container spacing={2}>
-            <Grid item xs={12} sm={4}>
-              <TextField
-                select
-                fullWidth
-                label="สัญชาติ"
-                required
-                margin="normal"
-              >
-                <MenuItem value="ไทย">ไทย</MenuItem>
-                <MenuItem value="อื่นๆ">อื่นๆ</MenuItem>
-              </TextField>
-            </Grid>
-            <Grid item xs={12} sm={4}>
-              <TextField
-                select
-                fullWidth
-                label="ประเทศที่เกิด"
-                required
-                margin="normal"
-              >
-                <MenuItem value="ไทย">ไทย</MenuItem>
-                <MenuItem value="อื่นๆ">อื่นๆ</MenuItem>
-              </TextField>
-            </Grid>
-            <Grid item xs={12} sm={4}>
-              <TextField
-                select
-                fullWidth
-                label="จังหวัดที่เกิด"
-                required
-                margin="normal"
-              >
-                <MenuItem value="กรุงเทพมหานคร">กรุงเทพมหานคร</MenuItem>
-                <MenuItem value="อื่นๆ">อื่นๆ</MenuItem>
-              </TextField>
-            </Grid>
-          </Grid>
-          
-          <TextField
-            fullWidth
-            label="อาชีพ"
-            required
-            margin="normal"
-          />
-          
-          <Grid container spacing={2}>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                select
-                fullWidth
-                label="ศาสนา"
-                required
-                margin="normal"
-              >
-                <MenuItem value="พุทธ">พุทธ</MenuItem>
-                <MenuItem value="คริสต์">คริสต์</MenuItem>
-                <MenuItem value="อิสลาม">อิสลาม</MenuItem>
-                <MenuItem value="อื่นๆ">อื่นๆ</MenuItem>
-              </TextField>
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                select
-                fullWidth
-                label="ระดับการศึกษาสูงสุด"
-                required
-                margin="normal"
-              >
-                <MenuItem value="ประถมศึกษา">ประถมศึกษา</MenuItem>
-                <MenuItem value="มัธยมศึกษา">มัธยมศึกษา</MenuItem>
-                <MenuItem value="ปริญญาตรี">ปริญญาตรี</MenuItem>
-                <MenuItem value="สูงกว่าปริญญาตรี">สูงกว่าปริญญาตรี</MenuItem>
-              </TextField>
-            </Grid>
-          </Grid>
-          
-          <Grid container spacing={2}>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                select
-                fullWidth
-                label="สถานะภาพสมรส"
-                required
-                margin="normal"
-              >
-                <MenuItem value="โสด">โสด</MenuItem>
-                <MenuItem value="สมรส">สมรส</MenuItem>
-                <MenuItem value="หย่าร้าง">หย่าร้าง</MenuItem>
-                <MenuItem value="หม้าย">หม้าย</MenuItem>
-              </TextField>
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                select
-                fullWidth
-                label="หมู่เลือด"
-                required
-                margin="normal"
-              >
-                <MenuItem value="A">A</MenuItem>
-                <MenuItem value="B">B</MenuItem>
-                <MenuItem value="AB">AB</MenuItem>
-                <MenuItem value="O">O</MenuItem>
-              </TextField>
-            </Grid>
-          </Grid>
-          
-          <TextField
-            select
-            fullWidth
-            label="ประวัติการแพ้ (ยา/อาหาร/อื่นๆ)"
-            required
-            margin="normal"
-          >
-            <MenuItem value="ไม่มี">ไม่มี</MenuItem>
-            <MenuItem value="มี">มี</MenuItem>
-          </TextField>
-          
-          <Grid container spacing={2}>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                label="ชื่อ-นามสกุล บิดา"
-                required
-                margin="normal"
-              />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                label="ชื่อ-นามสกุล มารดา"
-                required
-                margin="normal"
-              />
-            </Grid>
-          </Grid>
+
+    const fileInputRef = useRef(null);
+
+    const initialUserData = {
+        user_id: '',
+        username: 'test15551',
+        password: '1234',
+        email: '',
+        tel: '',
+        role: '',
+        first_name: '',
+        last_name: '',
+        gender: '',
+        birthDate: '',
+        birthMonth: '',
+        birthYear: '',
+        date_of_birth: '',
+    };
+
+    const [userData, setUserData] = useState(initialUserData);
+
+    const handleChange = (event) => {
+        const { name, value } = event.target;
+        setUserData(prevData => {
+            const updatedData = { ...prevData, [name]: value };
+
+            // Combine birth date fields if all are present
+            if (['birthDate', 'birthMonth', 'birthYear'].includes(name)) {
+                const { birthDate, birthMonth, birthYear } = updatedData;
+                if (birthDate && birthMonth && birthYear) {
+                    updatedData.date_of_birth = `${birthDate}-${birthMonth}-${birthYear}`;
+                }
+            }
+
+            return updatedData;
+        });
+    };
+
+    const handleImageUpload = (event) => {
+        const file = event.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setUserData(prevData => ({
+                    ...prevData,
+                    profile_picture_url: reader.result,
+                    profile_image_name: file.name
+                }));
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
+    const handleSubmit = () => {
+        // if (isValidForm()) {
+        //     console.log('Form submitted:', userData);
+        //     // Here you can add your logic to send the data to a server or perform other actions
+        // } else {
+        //     console.log('Form is invalid');
+        //     // You might want to show an error message to the user here
+        // }
+        try {
+            handleRegister();
+            console.log('Register', userData);
+        } catch (e) {
+            AlertError('เกิดข้อผิดพลาด', e)
+        }
+
+    };
+
+    const handleReset = () => {
+        setUserData(initialUserData);
+    };
+
+    const handleRegister = async () => {
+        const res = await UserRegister(userData)
+    };
+
+
+
+    return (
+        <Box>
+            <AppBarComponent />
+            <Box>
+                <Container maxWidth="lg" margin={4}>
+                    <Paper elevation={3} sx={{ p: 3, mt: 3 }}>
+                        <Typography variant="h4" component="h1" gutterBottom fontWeight={'bold'}>
+                            สร้างบัญชีพนักงาน
+                        </Typography>
+
+                        <Box component="form" noValidate sx={{ mt: 3 }}>
+                            <Box paddingBottom={4}>
+                                <Typography variant="body2" sx={{ bgcolor: 'warning.light', p: 2, mb: 2 }}>
+                                    บันทึกข้อความ: กรุณาตรวจสอบข้อมูลให้ถูกต้อง
+                                </Typography>
+
+                                <Typography variant="h6" component="h1" gutterBottom fontWeight={'bold'}>
+                                    ระบุข้อมูลพนักงาน
+                                </Typography>
+
+                                <Divider />
+
+                                <Grid container spacing={2} marginTop={1}>
+                                    <Grid item xs={12} sm={6}>
+                                        <Typography gutterBottom sx={{ fontSize: '18px' }}>
+                                            username
+                                        </Typography>
+                                        <TextField
+                                            fullWidth
+                                            label="username"
+                                            name="username"
+                                            value={userData.username}
+                                            onChange={handleChange}
+                                            required
+                                            margin="small"
+                                        />
+                                    </Grid>
+                                    <Grid item xs={12} sm={6}>
+                                        <Typography gutterBottom sx={{ fontSize: '18px' }}>
+                                            password
+                                        </Typography>
+                                        <TextField
+                                            fullWidth
+                                            label="password"
+                                            name="password"
+                                            value={userData.password}
+                                            onChange={handleChange}
+                                            required
+                                            margin="small"
+                                        />
+                                    </Grid>
+                                    <Grid item xs={12} sm={6}>
+                                        <Typography gutterBottom sx={{ fontSize: '18px' }}>
+                                            รหัสพนักงาน
+                                        </Typography>
+                                        <TextField
+                                            fullWidth
+                                            label="รหัสพนักงาน"
+                                            name="user_id"
+                                            value={userData.user_id}
+                                            onChange={handleChange}
+                                            required
+                                            margin="small"
+                                        />
+                                    </Grid>
+                                    <Grid item xs={12} sm={6}>
+                                        <Typography gutterBottom sx={{ fontSize: '18px' }}>
+                                            ตำแหน่ง
+                                        </Typography>
+                                        <TextField
+                                            select
+                                            fullWidth
+                                            label="ตำแหน่ง"
+                                            name="role"
+                                            value={userData.role}
+                                            onChange={handleChange}
+                                            required
+                                            margin="small"
+                                        >
+                                            {['sale', 'Admin'].map((position) => (
+                                                <MenuItem key={position} value={position}>{position}</MenuItem>
+                                            ))}
+                                        </TextField>
+                                    </Grid>
+                                </Grid>
+
+
+
+                                <Typography variant="h6" component="h1" gutterBottom fontWeight={'bold'} marginTop={4}>
+                                    ระบุข้อมูลพนักงาน
+                                </Typography>
+
+                                <Divider />
+
+                                <Grid container spacing={2} marginTop={1}>
+                                    <Grid item xs={12} sm={4}>
+                                        <Typography gutterBottom sx={{ fontSize: '18px' }}>
+                                            คำนำหน้า
+                                        </Typography>
+                                        <TextField
+                                            select
+                                            fullWidth
+                                            label="คำนำหน้า"
+                                            name="prefix"
+                                            value={userData.prefix}
+                                            onChange={handleChange}
+                                            required
+                                            margin="small"
+                                        >
+                                            <MenuItem value="นาย">นาย</MenuItem>
+                                            <MenuItem value="นาง">นาง</MenuItem>
+                                            <MenuItem value="นางสาว">นางสาว</MenuItem>
+                                        </TextField>
+                                    </Grid>
+                                    <Grid item xs={12} sm={4}>
+                                        <Typography gutterBottom sx={{ fontSize: '18px' }}>
+                                            ชื่อจริง
+                                        </Typography>
+                                        <TextField
+                                            fullWidth
+                                            label="ชื่อจริง"
+                                            name="first_name"
+                                            value={userData.first_name}
+                                            onChange={handleChange}
+                                            required
+                                            margin="small"
+                                        />
+                                    </Grid>
+                                    <Grid item xs={12} sm={4}>
+                                        <Typography gutterBottom sx={{ fontSize: '18px' }}>
+                                            นามสกุล
+                                        </Typography>
+                                        <TextField
+                                            fullWidth
+                                            label="นามสกุล"
+                                            name="last_name"
+                                            value={userData.last_name}
+                                            onChange={handleChange}
+                                            required
+                                            margin="small"
+                                        />
+                                    </Grid>
+
+                                    <Grid item xs={12} sm={4}>
+                                        <Typography gutterBottom sx={{ fontSize: '18px' }}>
+                                            เพศ
+                                        </Typography>
+                                        <TextField
+                                            select
+                                            fullWidth
+                                            label="เพศ"
+                                            name="gender"
+                                            value={userData.gender}
+                                            onChange={handleChange}
+                                            required
+                                            margin="small"
+                                        >
+                                            <MenuItem value="ชาย">ชาย</MenuItem>
+                                            <MenuItem value="หญิง">หญิง</MenuItem>
+                                        </TextField>
+                                    </Grid>
+                                </Grid>
+
+                                <Grid container spacing={2} marginTop={1}>
+                                    <Grid item xs={12} sm={4}>
+                                        <Typography gutterBottom sx={{ fontSize: '18px' }}>
+                                            วันเกิด
+                                        </Typography>
+                                        <TextField
+                                            select
+                                            fullWidth
+                                            label="วัน"
+                                            name="birthDate"
+                                            value={userData.birthDate}
+                                            onChange={handleChange}
+                                            margin="small"
+
+                                        >
+                                            {[...Array(31)].map((_, i) => (
+                                                <MenuItem key={i} value={(i + 1).toString().padStart(2, '0')}>{i + 1}</MenuItem>
+                                            ))}
+                                        </TextField>
+                                    </Grid>
+                                    <Grid item xs={12} sm={4}>
+                                        <Typography gutterBottom sx={{ fontSize: '18px' }}>
+                                            เดือนเกิด
+                                        </Typography>
+                                        <TextField
+                                            select
+                                            fullWidth
+                                            label="เดือน"
+                                            name="birthMonth"
+                                            value={userData.birthMonth}
+                                            onChange={handleChange}
+                                            margin="small"
+                                        >
+                                            {['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12'].map((month, index) => (
+                                                <MenuItem key={index} value={month}>{['มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน',
+                                                    'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'][index]}</MenuItem>
+                                            ))}
+                                        </TextField>
+                                    </Grid>
+                                    <Grid item xs={12} sm={4}>
+                                        <Typography gutterBottom sx={{ fontSize: '18px' }}>
+                                            ปีเกิด
+                                        </Typography>
+                                        <TextField
+                                            select
+                                            fullWidth
+                                            label="ปี"
+                                            name="birthYear"
+                                            value={userData.birthYear}
+                                            onChange={handleChange}
+                                            margin="small"
+                                        >
+                                            {[...Array(100)].map((_, i) => (
+                                                <MenuItem key={i} value={(2024 - i).toString()}>{2024 - i}</MenuItem>
+                                            ))}
+                                        </TextField>
+                                    </Grid>
+
+                                    {/* <Grid item xs={12} sm={4}>
+                                        <Typography gutterBottom sx={{ fontSize: '18px' }}>
+                                            อัพโหลดรูปโปรไฟล์
+                                        </Typography>
+                                        <TextField
+                                            fullWidth
+                                            InputProps={{
+                                                endAdornment: (
+                                                    <IconButton onClick={() => fileInputRef.current.click()}>
+                                                        <CloudUpload />
+                                                    </IconButton>
+                                                ),
+                                                readOnly: true,
+                                            }}
+                                            value={userData.profile_image_name || ''}
+                                            placeholder="เลือกไฟล์รูปภาพ"
+                                        />
+                                        <input
+                                            type="file"
+                                            ref={fileInputRef}
+                                            onChange={handleImageUpload}
+                                            style={{ display: 'none' }}
+                                            accept="image/*"
+                                        />
+                                    </Grid> */}
+                                </Grid>
+
+                                <Typography variant="h6" component="h1" gutterBottom fontWeight={'bold'} marginTop={4}>
+                                    ระบุข้อมูลสำหรับติดต่อ
+                                </Typography>
+
+                                <Divider />
+
+                                <Grid container spacing={2} marginTop={1}>
+                                    <Grid item xs={12} sm={4}>
+                                        <Typography gutterBottom sx={{ fontSize: '18px' }}>
+                                            อีเมล
+                                        </Typography>
+                                        <TextField
+                                            fullWidth
+                                            label="email"
+                                            name="email"
+                                            value={userData.email}
+                                            onChange={handleChange}
+                                            required
+                                            margin="small"
+                                        />
+                                    </Grid>
+                                    <Grid item xs={12} sm={4}>
+                                        <Typography gutterBottom sx={{ fontSize: '18px' }}>
+                                            เบอร์โทรศัพท์
+                                        </Typography>
+                                        <TextField
+                                            fullWidth
+                                            label="เบอร์โทรศัพท์"
+                                            name="tel"
+                                            value={userData.tel}
+                                            onChange={handleChange}
+                                            required
+                                            margin="small"
+                                        />
+                                    </Grid>
+                                </Grid>
+                            </Box>
+                        </Box>
+                        <Box sx={{ display: 'flex', justifyContent: 'flex-end', marginTop: 2 }}>
+                            <Button
+                                variant="contained"
+                                onClick={handleReset}
+                                sx={{ mr: 1, height: '40px', bgcolor: 'black', color: 'white' }}
+                            >
+                                ยกเลิก
+                            </Button>
+                            <Button
+                                variant="contained"
+                                color="primary"
+                                onClick={handleSubmit}
+                                disabled={false}
+                                sx={{ ml: 1, height: '40px', width: '200px' }}
+                            >
+                                ยืนยัน
+                            </Button>
+                        </Box>
+                    </Paper>
+                </Container>
+            </Box>
         </Box>
-      </Paper>
-    </Container>
-  );
+    );
 };
 
 export default Resgiter_view;

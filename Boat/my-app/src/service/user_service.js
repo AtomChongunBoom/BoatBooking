@@ -24,12 +24,12 @@ export const authenticateUser = async (token) => {
     }
   };
 
-// export const UserRegister = async (data) => {
-//     try {
-//         const response = await axios.post('http://localhost:8000/register', data)
-//         return response.data.user
-//     } catch (error) {
-//         console.error('Error sending email:', error)
-//         throw new Error('Failed to send email. Please try again later.')
-//     }
-// }
+export const UserRegister = async (data) => {
+    try {
+        const response = await axios.post('http://localhost:8000/register', data)
+        return response.data.user
+    } catch (error) {
+        console.error('Error sending email:', error)
+        throw new Error(error)
+    }
+}

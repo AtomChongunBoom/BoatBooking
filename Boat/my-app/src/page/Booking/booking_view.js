@@ -43,7 +43,7 @@ import CustomStepper from '../../component/timeline';
 import BoatBookingLanding from '../LandingPage/landingPage_view';
 import { AlertError, AlertLoading, AlertSuccess } from '../../component/popupAlert';
 
-import { SendEmail, CreateSource, AddTicketboat, Getpayment, CheckBoat } from '../../service/booking_service';
+import { CheckBoat } from '../../service/booking_service';
 
 import { Rules } from './booking_model';
 
@@ -182,12 +182,6 @@ const BookingView = () => {
 
   const handleSubmitted = async () => {
     setOpenDialog(false);
-    let paymentState = {}
-    // if (!first_name || !last_name || !address || !email || !tel || !selectedTime) {
-    //   AlertError('เกิดข้อผิดพลาด', 'กรอกข้อมูลให้ครบถ้วน')
-    //   return;
-    // }
-
     if (children >= 0 && adults <= 0) {
       AlertError('เกิดข้อผิดพลาด', 'จำนวนผู้โดยสาร "ผู้ใหญ่" น้อยเกินกำหนด')
       return;
@@ -195,63 +189,6 @@ const BookingView = () => {
 
     if (countPeople + (adults + children) < 6) {
       if (children < 4) {
-        // AlertLoading()
-
-        // try {
-        //   const bookingData = {
-        //     "id": uuidv4(),
-        //     "date": format(selectedDate, 'yyyy-MM-dd'),
-        //     "time": selectedTime,
-        //     "adults": adults,
-        //     "children": children,
-        //     "total_people": adults + children,
-        //     "total_price": totalPrice,
-        //     'first_name': first_name,
-        //     'last_name': last_name,
-        //     'email': email,
-        //     'tel': tel,
-        //     'address': address,
-        //     'creat_date': new Date().toISOString()
-        //   };
-
-        //   let omiseRes;
-        //   try {
-        //     omiseRes = await CreateSource(bookingData.total_price);
-        //   } catch (error) {
-        //     AlertError('เกิดข้อผิดพลาด', 'ไม่สามารถสร้างแหล่งการชำระเงินได้')
-        //     throw new Error('ไม่สามารถสร้างแหล่งการชำระเงินได้');
-        //   }
-
-        //   const paymentData = {
-        //     "ticketID": bookingData.id,
-        //     "source": omiseRes.id,
-        //     "amount": bookingData.total_price,
-        //   }
-
-        //   try {
-        //     await AddTicketboat(bookingData);
-        //   } catch (error) {
-        //     AlertError('เกิดข้อผิดพลาด', 'ไม่สามารถบันทึกการจองได้ โปรดลองอีกครั้งในภายหลัง')
-        //   }
-
-        //   try {
-        //     await SendEmail(bookingData);
-        //   } catch (error) {
-        //     AlertError('เกิดข้อผิดพลาด', 'ไม่สามารถส่งอีเมลได้')
-        //   }
-
-        //   try {
-        //     paymentState = await Getpayment(paymentData);
-        //   } catch (error) {
-        //     AlertError('เกิดข้อผิดพลาด', 'ไม่สามารถดำเนินการชำระเงินได้')
-        //   }
-
-        //   AlertSuccess('สำเร็จ', 'ข้อมูลการจองของคุณถูกบันทึกเรียบร้อยแล้ว')
-        //   window.location.href = paymentState.redirectUrl;
-        // } catch (error) {
-
-        //   AlertError('เกิดข้อผิดพลาด', 'ไม่สามารถบันทึกการจองได้ โปรดลองอีกครั้งในภายหลัง')
-        // }
         navigate('/checkout')
       } else {
         AlertError('จำนวนผู้โดยสาร "เด็ก" มากเกินกำหนด')

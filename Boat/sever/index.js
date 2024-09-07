@@ -288,6 +288,36 @@ app.post('/addTicketboat', (req, res) => {
   });
 });
 
+
+app.post('/register', (req, res) => {
+  const {id, username, password, email, tel, first_name, last_name, date_of_birth, gender, role, profile_picture_url} = req.body;
+  
+  // Get current date in DD-MM-YY format
+  const currentDate = new Date().toLocaleString('en-GB', {
+    day: '2-digit',
+    month: '2-digit',
+    year: '2-digit'
+  }).replace(/\//g, '-');
+
+  const sql = `
+    INSERT INTO users (	user_id, username, password, email, tel, first_name, last_name, date_of_birth, gender, role, profile_picture_url, status, created_at, updated_at, last_login)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `;
+  
+  db.query(sql, [
+    id, username, password, email, tel, first_name, last_name, date_of_birth, gender, role, profile_picture_url,
+    'active',
+    currentDate, currentDate, currentDate
+  ], (err, result) => {
+    if (err) {
+      console.error('Database query error:', err);
+      return res.status(500).json({ error: 'Database query failed' });
+    }
+    
+    res.status(201).json({ message: 'Record added successfully', id: result.insertId });
+  });
+});
+
 const transporter = nodemailer.createTransport({
   service: 'gmail',
   secure: true, // Changed to true for SSL

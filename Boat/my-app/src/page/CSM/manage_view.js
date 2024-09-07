@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate , Link,useParams  } from 'react-router-dom';
-import { AppBar, Toolbar,Box, Grid, Card, CardContent, Typography, CircularProgress, TextField, IconButton, Chip,Button } from '@mui/material';
+import { useNavigate, Link, useParams } from 'react-router-dom';
+import { AppBar, Toolbar, Box, Grid, Card, CardContent, Typography, CircularProgress, TextField, IconButton, Chip, Button, Menu, MenuItem } from '@mui/material';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { DataGrid } from '@mui/x-data-grid';
 import axios from 'axios';
@@ -12,6 +12,7 @@ import PeopleIcon from '@mui/icons-material/People';
 import BoatIcon from '@mui/icons-material/DirectionsBoat';
 import Cookies from 'js-cookie';
 import { authenticateUser } from '../../service/user_service';
+import AppBarComponent from '../../component/appbar';
 
 const CSMTable = () => {
     const navigate = useNavigate();
@@ -85,6 +86,16 @@ const CSMTable = () => {
             default:
                 return { color: 'default', backgroundColor: '#f5f5f5', borderColor: '#9e9e9e' };
         }
+    };
+
+    const [anchorEl, setAnchorEl] = React.useState(null);
+
+    const handleMenu = (event) => {
+        setAnchorEl(event.currentTarget);
+    };
+
+    const handleClose = () => {
+        setAnchorEl(null);
     };
 
     const columns = [
@@ -171,19 +182,7 @@ const CSMTable = () => {
 
     return (
         <Box>
-            <AppBar position="static" color="transparent" sx={{ boxShadow: 2 }} >
-                <Toolbar>
-                    <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-                        <img
-                            src="https://ik.imagekit.io/tvlk/image/imageResource/2023/06/29/1688022859636-852e89a793fd448275fdc71c91824f06.png?tr=q-75"
-                            alt="Logo"
-                            style={{ height: '40px' }} // Adjust the height as needed
-                        />
-                    </Typography>
-                    <Button color="inherit" component={Link} to="/" >หน้าหลัก</Button>
-                    <Button color="inherit" component={Link} to="/login">Admin</Button>
-                </Toolbar>
-            </AppBar>
+            <AppBarComponent />
             <Box className="p-6 bg-blue-50 min-h-screen" sx={{ padding: 4 }}>
                 <Grid container spacing={4}>
                     <Grid item xs={12} md={6} lg={3}>
