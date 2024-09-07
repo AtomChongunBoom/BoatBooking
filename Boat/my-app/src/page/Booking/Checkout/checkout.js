@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 
 import { getProvince, getDistricts, getSubDistrict, getZipCode } from '../../../service/utinity_service';
-import { AlertError, AlertSuccess } from '../../../component/popupAlert';
+import { AlertError, AlertLoading, AlertSuccess } from '../../../component/popupAlert';
 
 import {
     Card,
@@ -176,6 +176,8 @@ const CheckoutView = () => {
 
 
     const handleSubmitted = async () => {
+        //loading
+        AlertLoading()
         try {
             // Check if all checkboxes are checked
             if (!Object.values(checkboxValues).every(value => value === true)) {

@@ -115,7 +115,7 @@ const BookingView = () => {
   }, [selectedDate, selectedTime, adults, children, countPeople]);
 
   const handleMaxPeople = async () => {
-    const countPeople = await CheckBoat(format(selectedDate, 'yyyy-MM-dd'), selectedTime);
+    const countPeople = await CheckBoat(format(selectedDate, 'dd-MM-yyyy'), selectedTime);
     console.log("Test", countPeople)
     if (countPeople.total_people && countPeople.total_people > 0) {
       setCountPeople(countPeople.total_people);

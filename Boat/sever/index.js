@@ -32,9 +32,9 @@ app.use(express.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 const db = mysql.createConnection({
-  host: 'localhost',
-  user: 'root',
-  database: "boatbooking"
+  host: process.env.host,
+  user: process.env.user,
+  database: process.env.database
 });
 
 // Swagger configuration
@@ -299,7 +299,7 @@ const transporter = nodemailer.createTransport({
 
 app.post('/send-email', async (req, res) => {
   try {
-    let { id, date, time, adults, children, total_people, total_price, first_name, last_name, email, tel, address, creat_date } = req.body;
+    let { id, date, time, adults, children, total_people, total_price, first_name, last_name, email, tel, address,} = req.body;
     
     if (!email) {
       console.error('Email is required but not provided:', req.body);
@@ -323,9 +323,7 @@ app.post('/send-email', async (req, res) => {
       adultTotal, childrenTotal, totalVat, total_price, qrCodeUrl
     };
 
-    console.log('Email data:', emailData);
-
-    const htmlTemplate = fs.readFileSync('email.html', 'utf8');
+    const htmlTemplate = fs.readFileSync(process.env.EmailHTML, 'utf8');
     const template = handlebars.compile(htmlTemplate);
     const htmlToSend = template(emailData);
 
