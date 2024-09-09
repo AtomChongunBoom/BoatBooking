@@ -1,192 +1,350 @@
-import React from 'react';
-import { Box, Card, CardContent, Typography, Grid, LinearProgress, Table, TableBody, TableCell, TableHead, TableRow, Avatar } from '@mui/material';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from 'recharts';
-import { PieChart, Pie, Cell } from 'recharts';
+import React, { useEffect, useState } from 'react';
 
-const salesData = [
-  { month: 'Jan', sales: 180 },
-  { month: 'Feb', sales: 160 },
-  { month: 'Mar', sales: 60 },
-  { month: 'Apr', sales: 100 },
-  { month: 'May', sales: 40 },
-  { month: 'Jun', sales: 140 },
-  { month: 'Jul', sales: 150 },
-  { month: 'Aug', sales: 170 },
-  { month: 'Sep', sales: 180 },
-  { month: 'Oct', sales: 200 },
-  { month: 'Nov', sales: 180 },
-  { month: 'Dec', sales: 130 },
-];
+import { useNavigate, Link, useParams } from 'react-router-dom';
+import Cookies from 'js-cookie';
+import {
+  Box,
+  Paper,
+  Typography,
+  Grid,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Button,
+  Avatar,
+  LinearProgress,
+  Chip,
+  Card,
+  TextField,
+  Pagination
+} from '@mui/material';
+import { FaCalendarAlt, FaPrint } from 'react-icons/fa';
+import { FiEdit } from "react-icons/fi";
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import dayjs from 'dayjs';
+import 'dayjs/locale/th';
+import AppBarComponent from '../../../component/appbar';
+import { tr } from 'date-fns/locale';
+import { GetAllBookings, getCountTicketByDate } from '../../../service/booking_service';
+import { format } from 'date-fns';
 
-const trafficData = [
-  { name: 'Desktop', value: 63 },
-  { name: 'Tablet', value: 15 },
-  { name: 'Phone', value: 22 },
-];
+const Dashboard_View = () => {
 
-const COLORS = ['#8884d8', '#82ca9d', '#ffc658'];
+  const timeSlots = [
+    { time: '9:00 - 10:30', total_adults: 0, total_children: 0, total_people: 0, total: 5 },
+    { time: '10:00 - 11:30', total_adults: 0, total_children: 0, total_people: 0, total: 5 },
+    { time: '11:00 - 12:30', total_adults: 0, total_children: 0, total_people: 0, total: 5 },
+    { time: '12:00 - 13:30', total_adults: 0, total_children: 0, total_people: 0, total: 5 },
+    { time: '13:00 - 14:30', total_adults: 0, total_children: 0, total_people: 0, total: 5 },
+    { time: '13:30 - 15:00', total_adults: 0, total_children: 0, total_people: 0, total: 5 },
+  ];
 
-const latestProducts = [
-  { name: 'Soap & Co. Eucalyptus', image: '/api/placeholder/50/50' },
-  { name: 'Necessaire Body Lotion', image: '/api/placeholder/50/50' },
-  { name: 'Ritual of Sakura', image: '/api/placeholder/50/50' },
-  { name: 'Lancome Rouge', image: '/api/placeholder/50/50' },
-  { name: 'Etiology Aloe Vera', image: '/api/placeholder/50/50' },
-];
+  const navigate = useNavigate();
+  const token = Cookies.get('token')
+  const [selectedDate, setSelectedDate] = useState(dayjs());
+  const [TicketData, setTicketData] = useState(timeSlots);
+  const [totalCount, setTotalCount] = useState(0);
+  const [totalPrice, setTotalPrice] = useState(0);
+  const [totalBookings, setTotalBook] = useState(0);
+  const [bookings, setBookings] = useState([]);
+  const [page, setPage] = useState(1);
+  const ITEMS_PER_PAGE = 20;
 
-const latestOrders = [
-  { id: 'ORD-207', customer: 'Marianna Tarkova', date: 'Mar 8, 2024', status: 'Pending' },
-  { id: 'ORD-206', customer: 'Can Yu', date: 'Mar 8, 2024', status: 'Delivered' },
-  { id: 'ORD-204', customer: 'Alissa Richardson', date: 'Mar 8, 2024', status: 'Refunded' },
-  { id: 'ORD-203', customer: 'Anje Keizer', date: 'Mar 8, 2024', status: 'Pending' },
-  { id: 'ORD-202', customer: 'Clarke Gillebert', date: 'Mar 8, 2024', status: 'Delivered' },
-];
+  useEffect(() => {
+    if (!token) {
+      navigate('/login');
+      return;
+    }
+    handleGetAllBooking(token);
+  }, []);
 
-const Dashboard = () => {
+
+  const handleDateChange = (newDate) => {
+    
+
+    // อัปเดตวันที่ที่ถูกเลือก
+    setSelectedDate(newDate);
+
+    // แปลงวันที่ให้อยู่ในรูปแบบที่ต้องการ
+    const formattedDate = formatDate(newDate);
+
+    // เรียกฟังก์ชันเพื่อดึงข้อมูลตามวันที่ที่ถูกเลือก
+    handleGetCountTicketByDate(formattedDate);
+  };
+
+  const formatDate = (date) => {
+    const jsDate = new Date(date.$d || date); // ตรวจสอบว่ามีคุณสมบัติ $d หรือไม่ และสร้างวัตถุ Date
+    const day = String(jsDate.getDate()).padStart(2, '0');
+    const month = String(jsDate.getMonth() + 1).padStart(2, '0'); // เดือนเริ่มที่ 0
+    const year = jsDate.getFullYear();
+
+    return `${day}-${month}-${year}`;
+  };
+
+  const handleChangePage = (event, newPage) => {
+    setPage(newPage);
+  };
+
+  const handleGetAllBooking = async () => {
+    try {
+      const res = await GetAllBookings(token);
+      setBookings(res);
+      setTotalBook(res.length);
+    } catch (e) {
+      console.log(e);
+    }
+  };
+
+  const handleGetCountTicketByDate = async (newData) => {
+    try {
+      const res = await getCountTicketByDate(newData);
+      let count = totalCount
+      let totalPrice = 0;
+
+      // สมมติว่า res เป็น array ที่มีข้อมูลของ timeSlots จาก API
+      const updatedTimeSlots = timeSlots.map((slot) => {
+        const matchingData = res.find((item) => item.time === slot.time);
+
+        // ถ้าเจอเวลาเดียวกัน ให้ใช้ข้อมูลจาก API
+        if (matchingData) {
+          //count += matchingData.total_people;
+          //totalPrice += matchingData.total_price;
+          return {
+            ...slot,
+            total_adults: matchingData.total_adults,
+            total_children: matchingData.total_children,
+            total_people: matchingData.total_people,
+            total: 5,
+          };
+        }
+        return {
+          ...slot,
+          total_adults: 0,
+          total_children: 0,
+          total_people: 0,
+          total: 5,
+        };
+      });
+      // อัปเดต state ด้วยข้อมูลใหม่
+      setTicketData(updatedTimeSlots);
+      setTotalCount(totalCount + count);
+      setTotalPrice(totalPrice);
+
+    } catch (e) {
+      console.log(e);
+    }
+  };
+
+  const startIndex = (page - 1) * ITEMS_PER_PAGE;
+  const endIndex = startIndex + ITEMS_PER_PAGE;
+  const displayedBookings = bookings.slice(startIndex, endIndex);
+
+  const totalPages = Math.ceil(bookings.length / ITEMS_PER_PAGE);
+
+  const getStatusColor = (status) => {
+    switch (status.toLowerCase()) {
+      case 'เสร็จสิ้น':
+        return { color: 'success', backgroundColor: '#e6f4ea', textColor: '#34a853' };
+      case 'รอชำระเงิน':
+        return { color: 'warning', backgroundColor: '#fff8e1', textColor: '#ffa000' };
+      case 'ยกเลิก':
+        return { color: 'error', backgroundColor: '#fde7e7', textColor: '#d32f2f' };
+      case 'พร้อมให้บริการ':
+        return { color: 'info', backgroundColor: '#e3f2fd', textColor: '#1976d2' };
+      default:
+        return { color: 'default', backgroundColor: '#f5f5f5', textColor: '#9e9e9e' };
+    }
+  };
+
   return (
-    <Box sx={{ flexGrow: 1, p: 3 }}>
-      <Grid container spacing={3}>
-        {/* Summary Cards */}
-        <Grid item xs={12} sm={6} md={3}>
-          <Card>
-            <CardContent>
-              <Typography variant="h6" component="div">Budget</Typography>
-              <Typography variant="h4">$24k</Typography>
-              <Typography variant="body2" color="text.secondary">12% Since last month</Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          <Card>
-            <CardContent>
-              <Typography variant="h6" component="div">Total Customers</Typography>
-              <Typography variant="h4">1.6k</Typography>
-              <Typography variant="body2" color="text.secondary">16% Since last month</Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          <Card>
-            <CardContent>
-              <Typography variant="h6" component="div">Task Progress</Typography>
-              <Typography variant="h4">75.5%</Typography>
-              <LinearProgress variant="determinate" value={75.5} sx={{ mt: 2 }} />
-            </CardContent>
-          </Card>
-        </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          <Card>
-            <CardContent>
-              <Typography variant="h6" component="div">Total Profit</Typography>
-              <Typography variant="h4">$15k</Typography>
-              <Typography variant="body2" color="text.secondary">+25% Since last month</Typography>
-            </CardContent>
-          </Card>
-        </Grid>
+    <Box>
+      <AppBarComponent />
+      <Box sx={{ p: 3 }}>
+        <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="th">
+          <Paper elevation={3} sx={{ p: 2, mb: 3 }}>
+            <Grid container alignItems="center" justifyContent="space-between" spacing={2}>
+              <Grid item xs={12} sm={4}>
+                <Box display="flex" alignItems="center" mb={1}>
+                  <FaCalendarAlt style={{ marginRight: '8px' }} />
+                  <Typography variant="body1">ระบุวันที่จองทริปข้อมูล</Typography>
+                </Box>
+                <DatePicker
+                  value={selectedDate}
+                  onChange={handleDateChange}
+                  renderInput={(params) => <TextField {...params} fullWidth />}
+                  format="DDMMYYYY"
+                />
+              </Grid>
+              <Grid item xs={12} sm={3} textAlign="center">
+                <Card>
+                  <Typography variant="body1">จำนวนที่ให้บริการ</Typography>
+                  <Typography variant="h4">{totalCount} / 30</Typography>
+                  <Typography variant="body2">(เหลือ {30 - totalCount} ที่)</Typography>
+                </Card>
+              </Grid>
+              <Grid item xs={12} sm={3} textAlign="center">
+                <Card>
+                  <Typography variant="body1">รายได้วันนี้</Typography>
+                  <Typography variant="h4">{totalPrice} บาท</Typography>
+                  <Typography variant="body2">(รายการจองทั้งหมด {totalBookings} รายการ)</Typography>
+                </Card>
+              </Grid>
+              <Grid item xs={12} sm={2}>
+                <Button
+                  variant="contained"
+                  startIcon={<FaPrint />}
+                  fullWidth
+                  sx={{
 
-        {/* Sales Chart */}
-        <Grid item xs={12} md={8}>
-          <Card>
-            <CardContent>
-              <Typography variant="h6" component="div" gutterBottom>Sales</Typography>
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={salesData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="month" />
-                  <YAxis />
-                  <Bar dataKey="sales" fill="#8884d8" />
-                </BarChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-        </Grid>
-
-        {/* Traffic Source */}
-        <Grid item xs={12} md={4}>
-          <Card>
-            <CardContent>
-              <Typography variant="h6" component="div" gutterBottom>Traffic Source</Typography>
-              <ResponsiveContainer width="100%" height={300}>
-                <PieChart>
-                  <Pie
-                    data={trafficData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={60}
-                    outerRadius={80}
-                    fill="#8884d8"
-                    dataKey="value"
-                    label
-                  >
-                    {trafficData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                  </Pie>
-                </PieChart>
-              </ResponsiveContainer>
-              <Box sx={{ display: 'flex', justifyContent: 'space-around', mt: 2 }}>
-                {trafficData.map((entry, index) => (
-                  <Typography key={entry.name} variant="body2">
-                    {entry.name}: {entry.value}%
-                  </Typography>
+                    backgroundColor: 'white',
+                    color: 'black',
+                    border: '1px solid #ccc',
+                    '&:hover': {
+                      backgroundColor: '#f5f5f5',
+                    },
+                  }}
+                >
+                  พิมพ์รายงาน
+                </Button>
+              </Grid>
+            </Grid>
+          </Paper>
+        </LocalizationProvider>
+        <Grid container spacing={3}>
+          <Grid item xs={12} md={4}>
+            {TicketData.length > 0 && (
+              <Paper elevation={3} sx={{ p: 2 }}>
+                <Typography variant="h6" gutterBottom>รายการจองทั้งหมด</Typography>
+                {TicketData.map((slot, index) => (
+                  <Card key={index} mb={2} sx={{ padding: 4, margin: 2 }}>
+                    <Typography variant="body2" sx={{ fontSize: '24px' }}>รอบ : {slot.time}</Typography>
+                    <LinearProgress
+                      variant="determinate"
+                      value={(slot.total_people / slot.total) * 100}
+                      sx={{ height: 10, borderRadius: 5 }}
+                    />
+                    <Box display="flex" flexDirection="row" justifyContent="space-between">
+                      <Typography variant="body2" align="left">
+                        ผู้ใหญ่ {slot.total_adults} คน เด็ก {slot.total_children}
+                      </Typography>
+                      <Typography variant="body2" align="right">
+                        {slot.total_people}/{slot.total}
+                      </Typography>
+                    </Box>
+                  </Card>
                 ))}
+              </Paper>
+            )}
+          </Grid>
+          {displayedBookings && displayedBookings.length > 0 ? (
+            <Grid item xs={12} md={8}>
+              <TableContainer component={Paper} sx={{ height: '100%' }}>
+                <Table boxShadow={4}>
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>หมายเลขตั๋ว</TableCell>
+                      <TableCell>ชื่อลูกค้า</TableCell>
+                      <TableCell>วันที่ใช้บริการ</TableCell>
+                      <TableCell>จำนวน</TableCell>
+                      <TableCell>มูลค่า</TableCell>
+                      <TableCell>สถานะการชำระ</TableCell>
+                      <TableCell>ตัวเลือก</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {displayedBookings.map((booking) => (
+                      <TableRow key={booking.id}>
+                        <TableCell>
+                          <Typography>{booking.booking_id || 'N/A'}</Typography>
+                        </TableCell>
+                        <TableCell>
+                          <Box display="flex" alignItems="center">
+                            <Avatar sx={{ mr: 2 }}>
+                              {booking.name && booking.name.length >= 2
+                                ? `${booking.first_name[0]}${booking.first_name[1]}`
+                                : ''}
+                            </Avatar>
+                            <Box>
+                              <Typography>คุณ {booking.first_name || 'N/A'} {booking.last_name || 'N/A'}</Typography>
+                              <Typography sx={{ fontSize: '12px' }}>{booking.tel || 'N/A'}</Typography>
+                            </Box>
+                          </Box>
+                        </TableCell>
+                        <TableCell>
+                          <Typography variant="body2">{booking.date || 'N/A'}</Typography>
+                          <Typography variant="body2">{booking.time || 'N/A'}</Typography>
+                        </TableCell>
+                        <TableCell>
+                          <Typography variant="body2">{booking.total_people || 'N/A'} ที่นั่ง</Typography>
+                          <Box>
+                            <Typography variant="body2">
+                              ผู้ใหญ่ : {booking.adults || 0} คน เด็ก : {booking.children || 0} คน
+                            </Typography>
+                          </Box>
+                        </TableCell>
+                        <TableCell>
+                          {typeof booking.amount === 'number'
+                            ? `${booking.amount.toLocaleString()} บาท`
+                            : 'N/A'}
+                        </TableCell>
+                        <TableCell>
+                          <Chip
+                            label={booking.status || 'N/A'}
+                            size="medium"
+                            sx={{
+                              width: '90%',
+                              backgroundColor: getStatusColor(booking.status).backgroundColor,
+                              borderColor: getStatusColor(booking.status).textColor,
+                              '& .MuiChip-label': {
+                                color: getStatusColor(booking.status).textColor,
+                              },
+                            }}
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <Button
+
+                            size="medium"
+                            sx={{
+                              width: '90%',
+                              backgroundColor: '้gray',
+                              borderColor: 'white',
+                              '& .MuiChip-label': {
+                                color: 'white',
+                              },
+                            }}
+                            onClick={() => navigate('/admin/edit/' + booking.booking_id)}
+                          >
+                            <FiEdit fontSize={'24px'} />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+              <Box display="flex" justifyContent="center" mt={2}>
+                <Pagination
+                  count={totalPages}
+                  page={page}
+                  onChange={handleChangePage}
+                  color="primary"
+                />
               </Box>
-            </CardContent>
-          </Card>
-        </Grid>
+            </Grid>
+          ) : (
+            <p>No bookings available</p>
+          )}
 
-        {/* Latest Products */}
-        <Grid item xs={12} md={6}>
-          <Card>
-            <CardContent>
-              <Typography variant="h6" component="div" gutterBottom>Latest Products</Typography>
-              <Table>
-                <TableBody>
-                  {latestProducts.map((product) => (
-                    <TableRow key={product.name}>
-                      <TableCell>
-                        <Avatar src={product.image} alt={product.name} />
-                      </TableCell>
-                      <TableCell>{product.name}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
         </Grid>
-
-        {/* Latest Orders */}
-        <Grid item xs={12} md={6}>
-          <Card>
-            <CardContent>
-              <Typography variant="h6" component="div" gutterBottom>Latest Orders</Typography>
-              <Table>
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Order</TableCell>
-                    <TableCell>Customer</TableCell>
-                    <TableCell>Date</TableCell>
-                    <TableCell>Status</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {latestOrders.map((order) => (
-                    <TableRow key={order.id}>
-                      <TableCell>{order.id}</TableCell>
-                      <TableCell>{order.customer}</TableCell>
-                      <TableCell>{order.date}</TableCell>
-                      <TableCell>{order.status}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-        </Grid>
-      </Grid>
+      </Box>
     </Box>
   );
 };
 
-export default Dashboard;
+export default Dashboard_View;

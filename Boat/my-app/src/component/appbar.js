@@ -39,6 +39,9 @@ const AppBarComponent = () => {
           <Button color="inherit" component={Link} to="/">
             หน้าหลัก
           </Button>
+          <Button color="inherit" component={Link} to="/admin/checkin">
+            check In
+          </Button>
           <Button color="inherit" component={Link} to="/admin">
             Admin
           </Button>

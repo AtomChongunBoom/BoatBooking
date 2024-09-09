@@ -132,7 +132,6 @@ const CheckoutView = () => {
             ...prevData,
             [name]: value
         }));
-        console.log(checkoutData)
     };
 
     const validateBookingData = (data) => {
@@ -196,7 +195,7 @@ const CheckoutView = () => {
             await AddTicketboat(checkoutData);
 
             //Send email
-            await SendEmail(checkoutData);
+            //await SendEmail(checkoutData);
 
             //Create Omise source
             const omiseRes = await CreateSource(checkoutData.amount);
@@ -598,7 +597,7 @@ const CheckoutView = () => {
                                 </Box>
                             </CardContent>
                         </Card>
-                        <Card sx={{ width: '30%', height: '44vh', boxShadow: 5, padding: 2 }}>
+                        <Card sx={{ width: '30%', height: '50vh', boxShadow: 5, padding: 2 }}>
                             <CardContent>
                                 <Typography variant="h5" gutterBottom fontWeight={'bold'}>
                                     สรุปยอดชำระเงิน

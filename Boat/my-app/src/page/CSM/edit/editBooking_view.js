@@ -163,6 +163,7 @@ const CandidateProfile = () => {
                                 onChange={handleInputChange}
                                 variant="outlined"
                                 size="medium"
+                                InputLabelProps={{ shrink: true }}
                                 placeholder={`Enter ${field.label.toLowerCase()}`} // เพิ่มบรรทัดนี้
                             />
                         </Grid>

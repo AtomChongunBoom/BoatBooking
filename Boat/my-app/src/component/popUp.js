@@ -6,11 +6,16 @@ import {
     IconButton,
     Typography,
     Box,
-    Grid
+    Grid,
+    useMediaQuery,
+    useTheme
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 
-export const BoatDetailsModal = ({ open, handleClose, selectedBoat, imageUrl }) => {
+export const BoatDetailsModal = ({ open, handleClose, selectedBoat }) => {
+    const theme = useTheme();
+    const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+
     if (!selectedBoat) return null;
 
     return (
@@ -19,9 +24,10 @@ export const BoatDetailsModal = ({ open, handleClose, selectedBoat, imageUrl }) 
             onClose={handleClose}
             maxWidth="md"
             fullWidth
+            fullScreen={isMobile}
         >
             <DialogTitle sx={{ pr: 6, margin: 1 }}>
-                <Typography variant="h4" component="div" fontWeight="bold" >
+                <Typography variant="h5" component="div" fontWeight="bold">
                     {selectedBoat.name}
                 </Typography>
                 <IconButton
@@ -38,9 +44,16 @@ export const BoatDetailsModal = ({ open, handleClose, selectedBoat, imageUrl }) 
                 </IconButton>
             </DialogTitle>
             <DialogContent>
-                <Grid container spacing={2} >
-                    <Grid item xs={12} md={4} x={{display:'flex',justifyContent:'center',alignItems:'center',border:'1px solid black',borderRadius:4}}>
-                        <Box sx={{ mt: 2 }}>
+                <Grid container spacing={2} direction={isMobile ? 'column-reverse' : 'row'}>
+                    <Grid item xs={12} md={6}>
+                        <Box sx={{ 
+                            height:'80%',
+                            mt: 2, 
+                            p: 2, 
+                            border: '1px solid',
+                            borderColor: 'grey.300',
+                            borderRadius: 2
+                        }}>
                             <DetailItem label="รุ่น" value={selectedBoat.model} />
                             <DetailItem label="เครื่องยนต์" value={selectedBoat.engine} />
                             <DetailItem label="สีไม้ของเรือ" value={selectedBoat.woodColor} />
@@ -48,12 +61,12 @@ export const BoatDetailsModal = ({ open, handleClose, selectedBoat, imageUrl }) 
                             <DetailItem label="สีท้องเรือ" value={selectedBoat.hullColor} />
                         </Box>
                     </Grid>
-                    <Grid item xs={12} md={6} >
+                    <Grid item xs={12} md={6}>
                         <Box
                             component="img"
                             sx={{
-                                width: '136%',
-                                height: '300px',
+                                width: '100%',
+                                height: isMobile ? '200px' : '300px',
                                 objectFit: 'cover',
                                 borderRadius: 1,
                             }}
@@ -68,8 +81,10 @@ export const BoatDetailsModal = ({ open, handleClose, selectedBoat, imageUrl }) 
 };
 
 const DetailItem = ({ label, value }) => (
-    <Box sx={{ display: 'flex', mb: 1 }}>
-        <Typography variant="body1" color="text.secondary" sx={{marginRight:2}}>{label}:</Typography>
+    <Box sx={{ display: 'flex', mb: 1, flexWrap: 'wrap' }}>
+        <Typography variant="body1" color="text.secondary" sx={{marginRight: 2, minWidth: '100px'}}>{label}:</Typography>
         <Typography variant="body1">{value}</Typography>
     </Box>
 );
+
+export default BoatDetailsModal;

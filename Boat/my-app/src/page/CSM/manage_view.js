@@ -79,7 +79,7 @@ const CSMTable = () => {
                 return { color: 'success', backgroundColor: '#e6f4ea', borderColor: '#34a853' };
             case 'รอชำระเงิน':
                 return { color: 'warning', backgroundColor: '#fff8e1', borderColor: '#ffa000' };
-            case 'ยกเลิกการจอง':
+            case 'ยกเลิก':
                 return { color: 'error', backgroundColor: '#fde7e7', borderColor: '#d32f2f' };
             case 'พร้อมให้บริการ':
                 return { color: 'info', backgroundColor: '#e3f2fd', borderColor: '#1976d2' };

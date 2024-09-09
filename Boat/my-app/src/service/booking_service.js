@@ -81,6 +81,21 @@ export const Getpayment = async (data) => {
     }
 };
 
+export const UpdateBooking = async (data,token) =>{
+    try {
+        const response = await axios.put(`http://localhost:8000/updateTicketboat/${data.id}`, data, {
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+        });
+        return response.data;
+    } catch (error) {
+        console.error('Error updating booking:', error);
+        throw error;
+    }
+}
+
 export const getBookingByID = async (body) =>{
     try {
         const response = await axios.get(`http://localhost:8000/getTicketboat/${body.id}`, {}, {
@@ -92,6 +107,33 @@ export const getBookingByID = async (body) =>{
         return response.data;
     } catch (error) {
         console.error('Error getting booking:', error);
+        throw error;
+    }
+}
+
+export const getCountTicketByDate = async (date) => {
+    try {
+        const response = await axios.get('http://localhost:8000/getCounterTicketByDay', {
+            params: { date: date }
+        });
+        return response.data;
+    } catch (error) {
+        console.error('Error getting booking:', error);
+        throw error;
+    }
+};
+
+export const GetAllBookings = async (token) =>{
+    try {
+        const response = await axios.get(`http://localhost:8000/getTicketboat`, {
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+        });
+        return response.data;
+    } catch (error) {
+        console.error('Error getting all bookings:', error);
         throw error;
     }
 }

@@ -69,13 +69,19 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
  *         description: Successful response
  */
 app.get('/getTicketboat', (req, res) => {
+  const authHeader = req.headers.authorization;
+
+  if (!authHeader) {
+    return res.status(401).send('Authorization header is required');
+  }
+
   db.query('SELECT * FROM ticketboat ORDER BY creat_date DESC', (err, result) => {
     if (err) throw err;
     res.send(result);
   })
 })
 
-app.get('/getTicketboat/:id', (req, res) => {
+app.get('/getticketboat/:id', (req, res) => {
   const { id } = req.params;
   db.query('SELECT * FROM ticketboat WHERE booking_id = ? ORDER BY creat_date DESC', [id], (err, result) => {
     if (err) {
@@ -85,9 +91,10 @@ app.get('/getTicketboat/:id', (req, res) => {
     if (result.length === 0) {
       return res.status(404).json({ message: 'No ticket found for this booking ID' });
     }
-    res.json({data:result[0]}); // ส่งข้อมูลเฉพาะตัวแรก
+    res.json({ data: result[0] }); // ส่งข้อมูลเฉพาะตัวแรก
   });
 });
+// });
 
 /**
  * @swagger
@@ -133,6 +140,19 @@ app.get('/getCount/:date/:time', (req, res) => {
       date, time;
   `;
 
+//   SELECT 
+//   date, 
+//   time, 
+//   SUM(adults) AS total_adults, 
+//   SUM(children) AS total_children, 
+//   SUM(adults + children) AS total_people 
+// FROM 
+//   ticketboat 
+// WHERE 
+//   date = '24-09-2024'
+// GROUP BY 
+//   date, time;
+
   // Execute the SQL query
   db.query(query, [date, time], (err, results) => {
     if (err) {
@@ -152,6 +172,39 @@ app.get('/getCount/:date/:time', (req, res) => {
       } else {
         res.json({});
       }
+    }
+  });
+});
+
+app.get('/getCounterTicketByDay', (req, res) => {
+  const date = req.query.date; 
+  console.log(date);
+    if (!date) {
+        return res.status(400).send('Date parameter is required.');
+    }
+
+  const query = `
+    SELECT 
+      date, 
+      time, 
+      SUM(adults) AS total_adults, 
+      SUM(children) AS total_children, 
+      SUM(total_people) AS total_people,
+      SUM(amount) AS total_price
+    FROM 
+      ticketboat 
+    WHERE 
+      date = ?
+    GROUP BY 
+      date, time;
+  `;
+
+  db.query(query, [date], (err, result) => {
+    if (err) {
+      console.error(err);
+      res.status(500).send('Server error');
+    } else {
+      res.send(result);
     }
   });
 });
@@ -289,9 +342,76 @@ app.post('/addTicketboat', (req, res) => {
 });
 
 
+app.put('/updateTicketboat/:id', (req, res) => {
+  const ticketId = req.params.id;
+  const {
+    date,
+    time,
+    adults,
+    children,
+    total_people,
+    vat,
+    amount,
+    total_price,
+    first_name,
+    last_name,
+    email,
+    tel,
+    address,
+    province,
+    district,
+    subdistrict,
+    zip_code,
+    note,
+    status
+  } = req.body;
+
+  const sql = `
+    UPDATE ticketboat
+    SET date = ?, time = ?, adults = ?, children = ?, total_people = ?,
+        vat = ?, amount = ?, total_price = ?, first_name = ?, last_name = ?,
+        email = ?, tel = ?, address = ?, province = ?, district = ?,
+        subdistrict = ?, zip_code = ?, note = ?, status = ?
+    WHERE id = ?
+  `;
+
+  db.query(sql, [
+    date,
+    time,
+    adults,
+    children,
+    total_people,
+    vat,
+    amount,
+    total_price,
+    first_name,
+    last_name,
+    email,
+    tel,
+    address,
+    province,
+    district,
+    subdistrict,
+    zip_code,
+    note,
+    status,
+    ticketId
+  ], (err, result) => {
+    if (err) {
+      console.error('Database query error:', err);
+      return res.status(500).json({ error: 'Database query failed' });
+    }
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: 'Record not found' });
+    }
+    res.status(200).json({ message: 'Record updated successfully' });
+  });
+});
+
+
 app.post('/register', (req, res) => {
-  const {id, username, password, email, tel, first_name, last_name, date_of_birth, gender, role, profile_picture_url} = req.body;
-  
+  const { id, username, password, email, tel, first_name, last_name, date_of_birth, gender, role, profile_picture_url } = req.body;
+
   // Get current date in DD-MM-YY format
   const currentDate = new Date().toLocaleString('en-GB', {
     day: '2-digit',
@@ -303,7 +423,7 @@ app.post('/register', (req, res) => {
     INSERT INTO users (	user_id, username, password, email, tel, first_name, last_name, date_of_birth, gender, role, profile_picture_url, status, created_at, updated_at, last_login)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `;
-  
+
   db.query(sql, [
     id, username, password, email, tel, first_name, last_name, date_of_birth, gender, role, profile_picture_url,
     'active',
@@ -313,39 +433,52 @@ app.post('/register', (req, res) => {
       console.error('Database query error:', err);
       return res.status(500).json({ error: 'Database query failed' });
     }
-    
+
     res.status(201).json({ message: 'Record added successfully', id: result.insertId });
   });
 });
 
 const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  secure: true, // Changed to true for SSL
+  host: 'smtp.gmail.com',
+  port: 587,
+  secure: false, // Changed to true for SSL
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS
-  }
+  },
+  requireTLS: true,
+  debug: true, // เพิ่มบรรทัดนี้
+  logger: true // และบรรทัดนี้
 });
 
 app.post('/send-email', async (req, res) => {
   try {
-    let { id, date, time, adults, children, total_people, total_price, first_name, last_name, email, tel, address,} = req.body;
-    
+    let { id, date, time, adults, children, total_people, total_price, first_name, last_name, email, tel, address } = req.body;
+
     if (!email) {
       console.error('Email is required but not provided:', req.body);
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
     console.log('Sending email to:', email);
+    console.log("time:", time);
+    console.log('EMAIL_USER:', process.env.EMAIL_USER);
+console.log('EMAIL_PASS is set:', !!process.env.EMAIL_PASS);
+console.log('EmailHTML path:', process.env.EmailHTML);
 
     const adultTotal = adults * 1500;
     const childrenTotal = children * 1000;
     const vat = 7;
     const totalVat = (((adultTotal + childrenTotal) * vat) / 100);
-    
-    date = format(new Date(date), 'dd/MM/yyyy');
 
+    // if (isNaN(Date.parse(date))) {
+    //   return res.status(400).json({ error: 'Invalid date format' });
+    // }
+    // date = format(new Date(date), 'dd/MM/yyyy');
+
+    console.log('Generating QR Code...');
     const qrCodeUrl = await QRCode.toDataURL(id);
+    console.log('QR Code generated successfully');
 
     const emailData = {
       id, date, time, adults, children, total_people,
@@ -353,7 +486,10 @@ app.post('/send-email', async (req, res) => {
       adultTotal, childrenTotal, totalVat, total_price, qrCodeUrl
     };
 
+    console.log('Reading HTML template...');
     const htmlTemplate = fs.readFileSync(process.env.EmailHTML, 'utf8');
+    console.log('HTML template read successfully');
+
     const template = handlebars.compile(htmlTemplate);
     const htmlToSend = template(emailData);
 
@@ -361,15 +497,38 @@ app.post('/send-email', async (req, res) => {
       from: process.env.EMAIL_USER,
       to: email,
       subject: "E-Ticket สำหรับการเดินทางเรือของคุณ - [True Lesing / Ayutaya]",
-      html: htmlToSend // Changed from text to html
+      html: htmlToSend
     };
 
-    const info = await transporter.sendMail(mailOptions);
-    console.log('Email sent:', info.response);
-    res.status(200).json({ message: 'Email sent successfully', info: info.response });
+    console.log('Sending email...');
+    let info;
+    try {
+      transporter.verify(function(error, success) {
+        if (error) {
+          console.log('SMTP connection error:', error);
+        } else {
+          console.log("SMTP connection is ready to take our messages");
+        }
+      });
+      
+      
+      info = await transporter.sendMail(mailOptions);
+      if (info.rejected.length > 0) {
+        console.error('Email was rejected:', info.rejected);
+        throw new Error('Email was rejected');
+      }
+      console.log('Email sent:', info.response);
+      console.log('Email sent:', info.response);
+      res.status(200).json({ message: 'Email sent successfully', info: info.response });
+    } catch (emailError) {
+      console.error('Error in transporter.sendMail:', emailError);
+      console.error('Error details:', JSON.stringify(emailError, null, 2));
+      res.status(500).json({ error: 'Failed to send email', details: emailError.message, stack: emailError.stack });
+    }
   } catch (error) {
     console.error('Error in email sending process:', error);
-    res.status(500).json({ error: 'Failed to send email', details: error.message });
+    console.error('Error stack:', error.stack);
+    res.status(500).json({ error: 'Failed to send email', details: error.message, stack: error.stack });
   }
 });
 
@@ -487,7 +646,7 @@ app.post('/login', (req, res) => {
     const user = result[0];
     if (user.password === password) {
       const { id, username, role, first_name, last_name } = user;
-      const token = jwt.sign({ id, username, role, first_name, last_name }, secret, { expiresIn: '1h' });
+      const token = jwt.sign({ id, username, role, first_name, last_name }, secret, { expiresIn: "1d" });
       res.json(token);
     } else {
       return res.status(401).send('Invalid password');
