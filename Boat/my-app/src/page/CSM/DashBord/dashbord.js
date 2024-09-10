@@ -60,13 +60,13 @@ const Dashboard_View = () => {
       navigate('/login');
       return;
     }
+    setTotalCount(0)
     handleGetAllBooking(token);
   }, []);
 
 
   const handleDateChange = (newDate) => {
     
-
     // อัปเดตวันที่ที่ถูกเลือก
     setSelectedDate(newDate);
 
@@ -112,8 +112,8 @@ const Dashboard_View = () => {
 
         // ถ้าเจอเวลาเดียวกัน ให้ใช้ข้อมูลจาก API
         if (matchingData) {
-          //count += matchingData.total_people;
-          //totalPrice += matchingData.total_price;
+          count += matchingData.total_people;
+          totalPrice += matchingData.total_price;
           return {
             ...slot,
             total_adults: matchingData.total_adults,

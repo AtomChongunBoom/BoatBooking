@@ -83,15 +83,26 @@ app.get('/getTicketboat', (req, res) => {
 
 app.get('/getticketboat/:id', (req, res) => {
   const { id } = req.params;
-  db.query('SELECT * FROM ticketboat WHERE booking_id = ? ORDER BY creat_date DESC', [id], (err, result) => {
+  console.log(`Received request for booking ID: ${id}`); // Debug log
+
+  const query = 'SELECT * FROM ticketboat WHERE booking_id = ? ORDER BY creat_date DESC';
+  console.log(`Executing query: ${query}`); // Debug log
+
+  db.query(query, [id], (err, result) => {
     if (err) {
-      console.error(err);
-      return res.status(500).json({ error: 'Database query failed' });
+      console.error('Database query error:', err);
+      return res.status(500).json({ error: 'Database query failed', details: err.message });
     }
+
+    console.log(`Query result:`, result); // Debug log
+
     if (result.length === 0) {
+      console.log(`No ticket found for booking ID: ${id}`); // Debug log
       return res.status(404).json({ message: 'No ticket found for this booking ID' });
     }
-    res.json({ data: result[0] }); // ส่งข้อมูลเฉพาะตัวแรก
+
+    console.log(`Returning data for booking ID: ${id}`); // Debug log
+    res.json({ data: result[0] }); // Sending only the first result
   });
 });
 // });

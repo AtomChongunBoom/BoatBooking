@@ -8,12 +8,15 @@ import {
   Typography,
   Link,
   useMediaQuery,
-  useTheme
+  useTheme,
+  InputAdornment,
 } from '@mui/material';
 import { UserLogin } from '../../service/user_service';
 import { AlertError } from '../../component/popupAlert';
 import { useNavigate } from 'react-router-dom';
 import Cookies from 'js-cookie';
+import { RiLockPasswordLine } from "react-icons/ri";
+import { FaRegUser } from "react-icons/fa";;
 
 const LoginPage = () => {
 
@@ -21,23 +24,23 @@ const LoginPage = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const [userdata, setUserData] = React.useState({
-    username:'',
+    username: '',
     password: ''
   });
 
   const handleLogin = async (req, res) => {
-    if(userdata.password && userdata.username){
+    if (userdata.password && userdata.username) {
       try {
         const token = await UserLogin(userdata)
-        if(token){
+        if (token) {
           Cookies.set('token', token, { expires: 7 });
           navigate('/admin')
         }
-      }catch(err) {
+      } catch (err) {
         AlertError('ล็อกอินผิดพลาด', 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง')
       }
-    }else{
-      AlertError('ล็อกอินผิดพลาด','กรุณากรอกข้อมูล')
+    } else {
+      AlertError('ล็อกอินผิดพลาด', 'กรุณากรอกข้อมูล')
       return;
     }
   };
@@ -93,8 +96,20 @@ const LoginPage = () => {
         <Typography variant="body2" color="text.secondary" gutterBottom>
           สำหรับ Admin หรือ Sale เท่านั้น!
         </Typography>
-        <TextField label="User Name" variant="outlined" margin="normal" fullWidth  value={userdata.username} name="username" onChange={handleChange}/>
-        <TextField label="Password" type="password" variant="outlined" margin="normal" fullWidth value={userdata.password} name="password" onChange={handleChange} />
+        <TextField label="User Name" variant="outlined" margin="normal" fullWidth value={userdata.username} name="username"  InputProps={{
+          startAdornment: (
+            <InputAdornment position="start">
+              <FaRegUser fontSize={'24px'} />
+            </InputAdornment>
+          ),
+        }} onChange={handleChange} />
+        <TextField label="Password" type="password" variant="outlined" margin="normal" fullWidth value={userdata.password} name="password" InputProps={{
+          startAdornment: (
+            <InputAdornment position="start">
+              <RiLockPasswordLine fontSize={'24px'}/>
+            </InputAdornment>
+          ),
+        }} onChange={handleChange} />
         <Box sx={{
           display: 'flex',
           flexDirection: isMobile ? 'column' : 'row',

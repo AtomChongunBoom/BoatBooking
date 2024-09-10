@@ -15,28 +15,31 @@ import { LocalizationProvider } from '@mui/x-date-pickers';
 import { getBookingByID, UpdateBooking } from '../../../service/booking_service';
 import AppBarComponent from '../../../component/appbar';
 import { AlertError, AlertLoading, AlertSuccess } from '../../../component/popupAlert';
+import { Check } from '@mui/icons-material';
 
-const BookingView = () => {
+const CheckIn_View = () => {
     const navigate = useNavigate();
     const theme = useTheme();
     const token = Cookies.get('token');
 
     const [bookingId, setBookingId] = useState('');
     const [bookingData, setBookingData] = useState(null);
+    const [dataOpen, setDataOpen] = useState(false);
 
     useEffect(() => {
         if (!token) {
             navigate('/login');
         }
-    }, [bookingData]);
+    }, [token, navigate]);
 
     const handleGetBookingById = async () => {
         try {
-            const res = await getBookingByID({ token: token, id: bookingId });
-            setBookingData(res.data); // Assuming the API returns data in the correct format
+            const res = await getBookingByID({ token, id: bookingId });
+            setBookingData(res.data);
+            setDataOpen(true);
         } catch (error) {
             console.error("Error fetching booking data:", error);
-            // Handle error (e.g., show error message to user)
+            AlertError('ไม่สามารถดึงข้อมูลได้', error.message);
         }
     }
 
@@ -49,26 +52,57 @@ const BookingView = () => {
         setBookingId(event.target.value);
     }
 
-    const handleSuccess = async (event,status) => {
-        AlertLoading()
-        setBookingData(prevData => ({
-            ...prevData,
-            ["status"]: status
-        }));
-    
+    const handleStatusUpdate = async (status) => {
+        AlertLoading();
         try {
-            // Wait for the bookingData to be updated
-            const updatedData = {
-                ...bookingData,
-                ["status"]: status
-            };
-            const res = await UpdateBooking(updatedData, token);
-            AlertSuccess('กระบวนการเสร็จสิ้น')
-        
+            const updatedData = { ...bookingData, status };
+            await UpdateBooking(updatedData, token);
+            setBookingData(updatedData);
+            AlertSuccess('อัพเดทสถานะสำเร็จ');
         } catch (error) {
-            AlertError('อัพเดทผิดพลาด',error)
+            AlertError('อัพเดทผิดพลาด', error.message);
         }
+        setDataOpen(false)
     };
+
+    const renderBookingDetails = () => (
+        <>
+            <BookingDetailItem label="ชื่อผู้จอง" value={`${bookingData.first_name} ${bookingData.last_name}`} />
+            <BookingDetailItem label="วันที่" value={bookingData.date} />
+            <BookingDetailItem label="รอบ" value={bookingData.time} />
+            <BookingDetailItem label="จำนวน 'ผู้ใหญ่'" value={`${bookingData.adults} คน`} />
+            <BookingDetailItem label="จำนวน 'เด็ก'" value={`${bookingData.children} คน`} />
+            <BookingDetailItem label="สถานะการชำระ" value={bookingData.status} />
+            <Divider sx={{ my: 2 }} />
+            <BookingDetailItem label="ราคารวม (รวมภาษีมูลค่าเพิ่ม)" value={`${bookingData.amount} บาท`} isBold />
+            <Box display="flex" justifyContent="space-between" gap={2}>
+                <Button
+                    variant="contained"
+                    fullWidth
+                    sx={{ mt: 2, bgcolor: 'red', color: 'white', '&:hover': { bgcolor: 'darkred' } }}
+                    onClick={() => handleStatusUpdate("ยกเลิก")}
+                >
+                    ยกเลิกการจอง
+                </Button>
+                <Button
+                    variant="contained"
+                    color="primary"
+                    fullWidth
+                    sx={{ mt: 2 }}
+                    onClick={() => handleStatusUpdate("เสร็จสิ้น")}
+                >
+                    ยืนยันการจอง
+                </Button>
+            </Box>
+        </>
+    );
+
+    const BookingDetailItem = ({ label, value, isBold = false }) => (
+        <Box display="flex" justifyContent="space-between" mb={1}>
+            <Typography fontWeight={isBold ? "bold" : "normal"}>{label}</Typography>
+            <Typography fontWeight={isBold ? "bold" : "normal"}>{value}</Typography>
+        </Box>
+    );
 
     return (
         <Box>
@@ -128,54 +162,7 @@ const BookingView = () => {
 
                             <Card sx={{ width: '50%', height: '50vh', boxShadow: 5, padding: 2 }}>
                                 <Box display="flex" flexDirection="column" gap={2} justifyContent={'space-between'} padding={2}>
-                                    {bookingData ? (
-                                        <>
-                                            <Box display="flex" justifyContent="space-between" mb={1}>
-                                                <Typography>ชื่อผู้จอง</Typography>
-                                                <Typography>{bookingData.first_name} {bookingData.last_name}</Typography>
-                                            </Box>
-                                            <Box display="flex" justifyContent="space-between" mb={1}>
-                                                <Typography>วันที่</Typography>
-                                                <Typography>{bookingData.date}</Typography>
-                                            </Box>
-                                            <Box display="flex" justifyContent="space-between" mb={1}>
-                                                <Typography>รอบ</Typography>
-                                                <Typography>{bookingData.time}</Typography>
-                                            </Box>
-                                            <Box display="flex" justifyContent="space-between" mb={1}>
-                                                <Typography>จำนวน "ผู้ใหญ่"</Typography>
-                                                <Typography>{bookingData.adults} คน</Typography>
-                                            </Box>
-                                            <Box display="flex" justifyContent="space-between" mb={1}>
-                                                <Typography>จำนวน "เด็ก"</Typography>
-                                                <Typography>{bookingData.adults} คน</Typography>
-                                            </Box>
-                                            <Divider sx={{ my: 2 }} />
-                                            <Box display="flex" justifyContent="space-between" mb={1}>
-                                                <Typography fontWeight="bold">ราคารวม (รวมภาษีมูลค่าเพิ่ม)</Typography>
-                                                <Typography fontWeight="bold">{bookingData.amount} บาท</Typography>
-                                            </Box>
-                                            <Box display="flex" justifyContent="space-between" gap={2}>
-                                                <Button
-                                                    variant="contained"
-                                                    fullWidth
-                                                    sx={{ mt: 2, bgcolor: 'red', color: 'white', '&:hover': { bgcolor: 'darkred' } }}
-                                                    onClick={(e)=>handleSuccess(e,"ยกเลิก")}
-                                                >
-                                                    ยกเลิกการจอง
-                                                </Button>
-                                                <Button
-                                                    variant="contained"
-                                                    color="primary"
-                                                    fullWidth
-                                                    sx={{ mt: 2 }}
-                                                    onClick={(e)=>handleSuccess(e,"เสร็จสิ้น")}
-                                                >
-                                                    ยืนยันการจอง
-                                                </Button>
-                                            </Box>
-                                        </>
-                                    ) : (
+                                    {dataOpen ? renderBookingDetails() : (
                                         <Typography gutterBottom fontWeight={'bold'} color={'#1a237e'} fontSize={'24px'}>
                                             กรุณากรอกหมายเลขตั๋วและกด Submit เพื่อดูข้อมูลการจอง
                                         </Typography>
@@ -190,4 +177,4 @@ const BookingView = () => {
     );
 };
 
-export default BookingView;
+export default CheckIn_View;
