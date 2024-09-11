@@ -202,9 +202,6 @@ const BoatBookingLanding = () => {
                     </Grid>
                 </Box>
 
-
-
-
                 {/* Booking Form */}
                 {/* <Card sx={{ mb: 4, p: 2 }}>
                     <CardContent>

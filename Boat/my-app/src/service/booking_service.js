@@ -11,9 +11,10 @@ export const SendEmail = async (data) => {
     }
 }
 
-export const CreateSource = (amount) => {
+export const CreateSource = (paymentMethod,amount) => {
+
     return new Promise((resolve, reject) => {
-        Omise.createSource('rabbit_linepay', {
+        Omise.createSource(paymentMethod , {
             "amount": amount * 100,
             "currency": "THB",
         }, (statusCode, response) => {
@@ -78,6 +79,21 @@ export const Getpayment = async (data) => {
             // throw new Error('Failed to process payment. Please try again.')
             return []
         }
+    }
+};
+
+export const getBookingByDate = async (data,token) => {
+    try {
+        const response = await axios.get(`http://localhost:8000/getTicketByDay/${data}`, {}, {
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+        });
+        return response.data;
+    } catch (error) {
+        console.error('Error getting bookings:', error);
+        throw error;
     }
 };
 

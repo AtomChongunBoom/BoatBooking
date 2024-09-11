@@ -25,6 +25,9 @@ import Cookies from 'js-cookie'
 import { getBookingByID, UpdateBooking } from '../../../service/booking_service';
 import { getProvince, getDistricts, getSubDistrict, getZipCode } from '../../../service/utinity_service';
 
+import dayjs from 'dayjs';
+import { AlertError, AlertLoading, AlertSuccess } from '../../../component/popupAlert';
+
 
 const TicketForm_View = () => {
 
@@ -32,6 +35,7 @@ const TicketForm_View = () => {
     const { id } = useParams();
 
     const steps = ['รอชำระเงิน', 'ชำระเงินแล้ว', 'รอให้บริการ', 'เสร็จสิ้น'];
+    const [activeStep, setActiveStep] = useState(0);
 
     const subdistricts = ["Subdistrict 1", "Subdistrict 2", "Subdistrict 3"];
     const districts = ["District 1", "District 2", "District 3"];
@@ -107,8 +111,10 @@ const TicketForm_View = () => {
     const handleGetBookingById = async () => {
         console.log(id)
         const response = await getBookingByID({ id: id, token: token })
-        console.log(response);
+        console.log("tset",response);
         setBookingData(response.data);
+        const currentStepIndex = steps.findIndex(step => step === response.data.status);
+        setActiveStep(currentStepIndex);
     }
 
     const handleUpdate = async () => {
@@ -128,11 +134,13 @@ const TicketForm_View = () => {
         }));
     };
 
-    const handleSubmit = (event) => {
-        event.preventDefault();
-        console.log('Submitting form data:', BookingData);
-        handleUpdate()
-    };
+    useEffect(() => {
+        setBookingData(prevState => ({
+            ...prevState,
+            total_people: parseInt(prevState.adults || 0, 10) + parseInt(prevState.children || 0, 10)
+        }));
+    }, [BookingData.adults,BookingData.children]);
+    
 
     const handleChangeAutocomplate = async (event, newValue, name) => {
         if (newValue) {
@@ -170,6 +178,27 @@ const TicketForm_View = () => {
         }
         console.log(BookingData)
     };
+
+    const handleSubmit = () => {
+        if(BookingData.total_people > 5){
+            AlertError('แก้ไขข้อมูลผิดพลาด','มีจำนวนผู้โดยสารได้ไม่เกิน 5 คน')
+            return;
+        }
+        AlertLoading()
+        try {
+            handleUpdate();
+            AlertSuccess('อัพเดทข้อมูลสำเร็จ')
+        }catch (err) {
+            AlertError('การแก้ไขผิดพลาด')
+        }
+    };
+
+    const formatInputDate = (date) => {
+        if (!date) return '';
+        // แปลงค่าจาก DD-MM-YYYY เป็น YYYY-MM-DD
+        const [day, month, year] = date.split('-');
+        return `${year}-${month}-${day}`;
+      };
 
     return (
         <Box>
@@ -239,7 +268,7 @@ const TicketForm_View = () => {
                         <Typography variant="h5" sx={{ mb: 2 }}>
                             Status Ticket
                         </Typography>
-                        <Stepper activeStep={0} alternativeLabel sx={{ mb: 4 }}>
+                        <Stepper activeStep={activeStep} alternativeLabel sx={{ mb: 4 }}>
                             {steps.map((label) => (
                                 <Step key={label}>
                                     <StepLabel>{label}</StepLabel>
@@ -263,6 +292,9 @@ const TicketForm_View = () => {
                                         required
                                         value={BookingData.first_name}
                                         onChange={handleChange}
+                                        InputLabelProps={{
+                                            shrink: true,
+                                          }}
                                     />
                                 </Grid>
                                 <Grid item xs={12} sm={4}>
@@ -274,6 +306,9 @@ const TicketForm_View = () => {
                                         required
                                         value={BookingData.last_name}
                                         onChange={handleChange}
+                                        InputLabelProps={{
+                                            shrink: true,
+                                          }}
                                     />
                                 </Grid>
                             </Grid>
@@ -287,6 +322,9 @@ const TicketForm_View = () => {
                                         required
                                         value={BookingData.address}
                                         onChange={handleChange}
+                                        InputLabelProps={{
+                                            shrink: true,
+                                          }}
                                     />
                                 </Grid>
                             </Grid>
@@ -316,6 +354,9 @@ const TicketForm_View = () => {
                                         onChange={(e, newValue) => handleChangeAutocomplate(e, newValue, "province")}
                                         fullWidth
                                         disableListWrap
+                                        InputLabelProps={{
+                                            shrink: true,
+                                          }}
                                         ListboxProps={{
                                             style: {
                                                 maxHeight: '250px',
@@ -349,6 +390,9 @@ const TicketForm_View = () => {
                                         onChange={(e, newValue) => handleChangeAutocomplate(e, newValue, "province")}
                                         fullWidth
                                         disableListWrap
+                                        InputLabelProps={{
+                                            shrink: true,
+                                          }}
                                         ListboxProps={{
                                             style: {
                                                 maxHeight: '250px',
@@ -382,6 +426,9 @@ const TicketForm_View = () => {
                                         value={subdistrictDefaut.find(p => p.value == BookingData.subdistrict) || null}
                                         onChange={(e, newValue) => handleChangeAutocomplate(e, newValue, "subdistrict")}
                                         fullWidth
+                                        InputLabelProps={{
+                                            shrink: true,
+                                          }}
                                         disableListWrap
                                         ListboxProps={{
                                             style: {
@@ -400,6 +447,9 @@ const TicketForm_View = () => {
                                             label="Subdistrict"
                                             value={BookingData.subdistrict}
                                             onChange={handleChange}
+                                            InputLabelProps={{
+                                                shrink: true,
+                                              }}
                                         >
                                             {subdistricts.map((subdistrict, index) => (
                                                 <MenuItem key={index} value={subdistrict}>{subdistrict}</MenuItem>
@@ -419,6 +469,9 @@ const TicketForm_View = () => {
                                         placeholder="Email"
                                         value={BookingData.email}
                                         onChange={handleChange}
+                                        InputLabelProps={{
+                                            shrink: true,
+                                          }}
                                         InputProps={{
                                             startAdornment: (
                                                 <InputAdornment position="start">
@@ -432,12 +485,15 @@ const TicketForm_View = () => {
                                     <Typography sx={{ marginBottom: 2, fontSize: '18px' }}>Phone</Typography>
                                     <TextField
                                         fullWidth
-                                        name="phone"
+                                        name="tel"
                                         label="Phone"
                                         required
                                         placeholder="Phone"
-                                        value={BookingData.phone}
+                                        value={BookingData.tel}
                                         onChange={handleChange}
+                                        InputLabelProps={{
+                                            shrink: true,
+                                          }}
                                         InputProps={{
                                             startAdornment: (
                                                 <InputAdornment position="start">
@@ -464,11 +520,11 @@ const TicketForm_View = () => {
                                         name="ticketDate"
                                         label="Date"
                                         type="date"
-                                        value={BookingData.ticketDate}
+                                        value={BookingData.date}
                                         onChange={handleChange}
                                         InputLabelProps={{
                                             shrink: true,
-                                        }}
+                                          }}
                                     />
                                 </Grid>
                                 <Grid item xs={12} sm={4}>
@@ -480,6 +536,9 @@ const TicketForm_View = () => {
                                             label="Time"
                                             value={BookingData.time}
                                             onChange={handleChange}
+                                            InputLabelProps={{
+                                                shrink: true,
+                                              }}
                                         >
                                             {timeSlots.map((timeSlots, index) => (
                                                 <MenuItem key={index} value={timeSlots}>{timeSlots}</MenuItem>
@@ -497,6 +556,9 @@ const TicketForm_View = () => {
                                         label="Adults"
                                         value={BookingData.adults}
                                         onChange={handleChange}
+                                        InputLabelProps={{
+                                            shrink: true,
+                                          }}
                                         InputProps={{
                                             endAdornment: <InputAdornment position="end">คน</InputAdornment>,
                                         }}
@@ -510,6 +572,9 @@ const TicketForm_View = () => {
                                         label="Children"
                                         value={BookingData.children}
                                         onChange={handleChange}
+                                        InputLabelProps={{
+                                            shrink: true,
+                                          }}
                                         InputProps={{
                                             endAdornment: <InputAdornment position="end">คน</InputAdornment>,
                                         }}
@@ -521,8 +586,11 @@ const TicketForm_View = () => {
                                         fullWidth
                                         name="total"
                                         label="Total"
-                                        value={BookingData.total}
+                                        value={BookingData.total_people}
                                         onChange={handleChange}
+                                        InputLabelProps={{
+                                            shrink: true,
+                                          }}
                                         InputProps={{
                                             endAdornment: <InputAdornment position="end">คน</InputAdornment>,
                                         }}

@@ -1,4 +1,5 @@
 import React, { useState ,useRef} from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
     Box,
     TextField,
@@ -12,17 +13,19 @@ import {
 } from '@mui/material';
 import AppBarComponent from '../../../component/appbar';
 import { UserRegister } from '../../../service/user_service';
-import { AlertError } from '../../../component/popupAlert';
+import { AlertError, AlertLoading, AlertSuccess } from '../../../component/popupAlert';
 import { CloudUpload } from '@mui/icons-material';
 
 const Resgiter_view = () => {
 
     const fileInputRef = useRef(null);
 
+    const navigate = useNavigate();
+
     const initialUserData = {
         user_id: '',
-        username: 'test15551',
-        password: '1234',
+        username: '',
+        password: '',
         email: '',
         tel: '',
         role: '',
@@ -77,9 +80,11 @@ const Resgiter_view = () => {
         //     console.log('Form is invalid');
         //     // You might want to show an error message to the user here
         // }
+        AlertLoading()
         try {
             handleRegister();
-            console.log('Register', userData);
+            handleReset();
+            AlertSuccess('สร้างบัญชีสำเร็จ');
         } catch (e) {
             AlertError('เกิดข้อผิดพลาด', e)
         }
@@ -93,8 +98,6 @@ const Resgiter_view = () => {
     const handleRegister = async () => {
         const res = await UserRegister(userData)
     };
-
-
 
     return (
         <Box>
@@ -260,7 +263,7 @@ const Resgiter_view = () => {
                                 </Grid>
 
                                 <Grid container spacing={2} marginTop={1}>
-                                    <Grid item xs={12} sm={4}>
+                                    {/* <Grid item xs={12} sm={4}>
                                         <Typography gutterBottom sx={{ fontSize: '18px' }}>
                                             วันเกิด
                                         </Typography>
@@ -315,7 +318,7 @@ const Resgiter_view = () => {
                                                 <MenuItem key={i} value={(2024 - i).toString()}>{2024 - i}</MenuItem>
                                             ))}
                                         </TextField>
-                                    </Grid>
+                                    </Grid> */}
 
                                     {/* <Grid item xs={12} sm={4}>
                                         <Typography gutterBottom sx={{ fontSize: '18px' }}>
@@ -385,7 +388,7 @@ const Resgiter_view = () => {
                         <Box sx={{ display: 'flex', justifyContent: 'flex-end', marginTop: 2 }}>
                             <Button
                                 variant="contained"
-                                onClick={handleReset}
+                                onClick={()=>navigate('/admin')}
                                 sx={{ mr: 1, height: '40px', bgcolor: 'black', color: 'white' }}
                             >
                                 ยกเลิก

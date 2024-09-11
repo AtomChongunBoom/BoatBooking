@@ -218,27 +218,7 @@ const BookingView = () => {
   }));
 
   const handleCustomerText = () => {
-   if(!visible){
-    return (
-      <Box className="text-center" sx={{ padding: 1, display: 'flex' }}>
-        <Box m={1}>
-          <BsCheckCircleFill size={48} color='green' />
-        </Box>
-        <Box>
-          <Box>
-            <Typography variant="h6" gutterBottom className="mb-2" sx={{ color: 'green', fontWeight: 'bold' }}>
-              กรุณาเลือกรอบโดยสาร
-            </Typography>
-
-            <Typography gutterBottom className="mb-2" sx={{ color: '#b0b0b0', fontWeight: 'bold', fontSize: '16px' }}>
-              กรุณากรอกข้อมูลจำนวนคน
-            </Typography>
-          </Box>
-        </Box>
-      </Box>
-    )
-   }else{
-    if (disable) {
+    if (!visible) {
       return (
         <Box className="text-center" sx={{ padding: 1, display: 'flex' }}>
           <Box m={1}>
@@ -247,7 +227,7 @@ const BookingView = () => {
           <Box>
             <Box>
               <Typography variant="h6" gutterBottom className="mb-2" sx={{ color: 'green', fontWeight: 'bold' }}>
-                ขนะนี้มีที่นั่งเหลืออยู่ {People} ที่นั่ง
+                กรุณาเลือกรอบโดยสาร
               </Typography>
 
               <Typography gutterBottom className="mb-2" sx={{ color: '#b0b0b0', fontWeight: 'bold', fontSize: '16px' }}>
@@ -258,24 +238,44 @@ const BookingView = () => {
         </Box>
       )
     } else {
-      return (
-        <Box className="text-center" sx={{ padding: 1, display: 'flex' }}>
-          <Box m={1}>
-            <MdCancel size={56} color='red' />
+      if (disable) {
+        return (
+          <Box className="text-center" sx={{ padding: 1, display: 'flex' }}>
+            <Box m={1}>
+              <BsCheckCircleFill size={48} color='green' />
+            </Box>
+            <Box>
+              <Box>
+                <Typography variant="h6" gutterBottom className="mb-2" sx={{ color: 'green', fontWeight: 'bold' }}>
+                  ขนะนี้มีที่นั่งเหลืออยู่ {People} ที่นั่ง
+                </Typography>
+
+                <Typography gutterBottom className="mb-2" sx={{ color: '#b0b0b0', fontWeight: 'bold', fontSize: '16px' }}>
+                  กรุณากรอกข้อมูลจำนวนคน
+                </Typography>
+              </Box>
+            </Box>
           </Box>
-          <Box>
-            <Typography variant="h6" gutterBottom className="mb-2" sx={{ color: 'red', fontWeight: 'bold' }}>
-              ที่นั่งทั้งหมดเต็มแล้ว
-            </Typography>
-            <Typography gutterBottom className="mb-2" sx={{ color: '#b0b0b0', fontWeight: 'bold', fontSize: '16px' }}>
-              กรุณาเลือกรอบถัดไป
-            </Typography>
+        )
+      } else {
+        return (
+          <Box className="text-center" sx={{ padding: 1, display: 'flex' }}>
+            <Box m={1}>
+              <MdCancel size={56} color='red' />
+            </Box>
+            <Box>
+              <Typography variant="h6" gutterBottom className="mb-2" sx={{ color: 'red', fontWeight: 'bold' }}>
+                ที่นั่งทั้งหมดเต็มแล้ว
+              </Typography>
+              <Typography gutterBottom className="mb-2" sx={{ color: '#b0b0b0', fontWeight: 'bold', fontSize: '16px' }}>
+                กรุณาเลือกรอบถัดไป
+              </Typography>
+            </Box>
           </Box>
-        </Box>
-      )
+        )
+      }
     }
   }
-   }
 
   return (
     <Box>
@@ -315,14 +315,15 @@ const BookingView = () => {
           }
         }}>
 
-          <Box sx={{ position: 'relative', zIndex: 1, width: '96%' }}>
-            <CustomStepper currentStep={step - 1} />
-          </Box>
+          {!isMobile && (
+            <Box sx={{ position: 'relative', zIndex: 1, width: '96%' }}>
+              <CustomStepper currentStep={step - 1} />
+            </Box>)}
           <LocalizationProvider dateAdapter={AdapterDateFns}>
             <Container maxWidth="lg"
               sx={{
                 mt: 1,
-                margin: isMobile ? 0 : 'auto',
+                margin: 'auto',
                 backgroundClip: 'white',
                 opacity: '1',
                 position: 'relative', zIndex: 1

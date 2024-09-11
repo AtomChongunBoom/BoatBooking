@@ -11,7 +11,7 @@ import {
   useTheme,
   InputAdornment,
 } from '@mui/material';
-import { UserLogin } from '../../service/user_service';
+import { authenticateUser, UserLogin } from '../../service/user_service';
 import { AlertError } from '../../component/popupAlert';
 import { useNavigate } from 'react-router-dom';
 import Cookies from 'js-cookie';
@@ -33,7 +33,8 @@ const LoginPage = () => {
       try {
         const token = await UserLogin(userdata)
         if (token) {
-          Cookies.set('token', token, { expires: 7 });
+          Cookies.set('token', token, { expires: 1 });
+          handleGetUserData(token);
           navigate('/admin')
         }
       } catch (err) {
@@ -44,6 +45,13 @@ const LoginPage = () => {
       return;
     }
   };
+  
+  const handleGetUserData = async (token) => {
+     const res = await authenticateUser(token)
+     Cookies.set('first_name', res.first_name, { expires: 1 });
+     Cookies.set('last_name', res.last_name, { expires: 1 });
+     console.log(res)
+  }
 
   const handleChange = (event) => {
     const { name, value } = event.target;

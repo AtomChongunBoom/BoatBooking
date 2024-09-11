@@ -49,7 +49,7 @@ function App() {
           <Route path="/admin/checkin" element={<CheckIn_View />} />
           
           <Route path="/payment" element={<Checkout />} />
-          <Route path="/payment/success" element={<PaymentSuccessPage />} />
+          <Route path="/payment/success/:id" element={<PaymentSuccessPage />} />
           <Route path="/checkout" element={<CheckoutView />} />
         </Routes>
       </Router>

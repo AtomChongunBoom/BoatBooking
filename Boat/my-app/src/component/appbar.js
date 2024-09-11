@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AppBar, Toolbar, Typography, Button, IconButton, Menu, MenuItem, Box } from '@mui/material';
 import { Link } from 'react-router-dom';
@@ -9,6 +9,8 @@ const AppBarComponent = () => {
 
     const navigate = useNavigate();
     const token = Cookies.get('token');
+    const firstName = Cookies.get('first_name');
+    const lastName = Cookies.get('last_name');
 
   const [anchorEl, setAnchorEl] = useState(null);
 
@@ -38,29 +40,31 @@ const AppBarComponent = () => {
           </Typography>
           <Button color="inherit" component={Link} to="/">
             หน้าหลัก
-          </Button>
+            </Button>
           <Button color="inherit" component={Link} to="/admin/checkin">
             check In
           </Button>
           <Button color="inherit" component={Link} to="/admin">
             Admin
           </Button>
-          <div>
-            <IconButton
+          <Box sx={{width:'300px'}}>
+            <Button
               size="large"
               aria-label="account of current user"
               aria-controls="menu-appbar"
               aria-haspopup="true"
               onClick={handleMenu}
               color="inherit"
+              fullWidth
             >
               <img
                 src="https://today-obs.line-scdn.net/0hQIzXipbFDmZHIR1ylFFxMX93Ahd0RxRvZUZHBjYoV1FiDR0yLERdBWcjBUpiEUFnZ0REBGB1V184Eks1KA/w644"
                 alt="User"
-                style={{ width: '46px', height: '46px', borderRadius: '50%' }}
+                style={{ width: '46px', height: '46px', borderRadius: '50%' , marginRight:4}}
               />
-            </IconButton>
-          </div>
+              <Typography>{firstName} {lastName}</Typography>
+            </Button>
+          </Box>
         </Toolbar>
       </AppBar>
       <Menu

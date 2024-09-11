@@ -29,10 +29,10 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs from 'dayjs';
 import 'dayjs/locale/th';
 import AppBarComponent from '../../../component/appbar';
-import { tr } from 'date-fns/locale';
-import { GetAllBookings, getCountTicketByDate } from '../../../service/booking_service';
-import { format } from 'date-fns';
+import { GetAllBookings, getBookingByDate, getCountTicketByDate } from '../../../service/booking_service';
+import { FiAlertCircle } from "react-icons/fi";
 
+const ITEMS_PER_PAGE = 20;
 const Dashboard_View = () => {
 
   const timeSlots = [
@@ -53,28 +53,37 @@ const Dashboard_View = () => {
   const [totalBookings, setTotalBook] = useState(0);
   const [bookings, setBookings] = useState([]);
   const [page, setPage] = useState(1);
-  const ITEMS_PER_PAGE = 20;
+  const startIndex = (page - 1) * ITEMS_PER_PAGE;
+  const endIndex = startIndex + ITEMS_PER_PAGE;
+  const [dataFetched, setDataFetched] = useState(true)
+  const [title, setTitle] = useState('ข้อมูลการจองทั้งหมด');
 
   useEffect(() => {
     if (!token) {
       navigate('/login');
       return;
     }
+
+    if (dataFetched) {
+      handleGetAllBooking(token);
+    }
+
     setTotalCount(0)
-    handleGetAllBooking(token);
-  }, []);
+    setDataFetched(false)
+  }, [selectedDate]);
+
+  const displayedBookings = Array.isArray(bookings) ? bookings.slice(startIndex, endIndex) : [];
+  const totalPages = Math.ceil(bookings.length / ITEMS_PER_PAGE);
 
 
   const handleDateChange = (newDate) => {
-    
-    // อัปเดตวันที่ที่ถูกเลือก
-    setSelectedDate(newDate);
-
-    // แปลงวันที่ให้อยู่ในรูปแบบที่ต้องการ
-    const formattedDate = formatDate(newDate);
-
-    // เรียกฟังก์ชันเพื่อดึงข้อมูลตามวันที่ที่ถูกเลือก
-    handleGetCountTicketByDate(formattedDate);
+    if (newDate !== selectedDate) {
+      setSelectedDate(newDate);
+      const formattedDate = formatDate(newDate);
+      handleGetCountTicketByDate(formattedDate);
+      handleGetBookingByDate(formattedDate);
+      setTitle('ข้อมูลการจองในวันที่ : ' + formattedDate)
+    }
   };
 
   const formatDate = (date) => {
@@ -93,17 +102,38 @@ const Dashboard_View = () => {
   const handleGetAllBooking = async () => {
     try {
       const res = await GetAllBookings(token);
-      setBookings(res);
-      setTotalBook(res.length);
+      if (Array.isArray(res)) {
+        setBookings(res); // Only set bookings if it's a valid array
+        setTotalBook(res.length);
+        // console.log("Get Booking : ", bookings);
+        setTitle('ข้อมูลการจองทั้งหมด')
+        
+      } else {
+        console.error('Invalid data structure for bookings:', res);
+      }
     } catch (e) {
-      console.log(e);
+      console.log('Error fetching bookings:', e);
+    }
+  };
+
+  const handleGetBookingByDate = async (formattedDate) => {
+    try {
+      const response = await getBookingByDate(formattedDate, token);
+      if (Array.isArray(response)) {
+        setBookings(response);
+        setTotalBook(response.length);
+      } else {
+        console.error('Invalid response data for bookings:', response.data);
+      }
+    } catch (e) {
+      console.log('Error fetching bookings by date:', e);
     }
   };
 
   const handleGetCountTicketByDate = async (newData) => {
     try {
       const res = await getCountTicketByDate(newData);
-      let count = totalCount
+      let count = 0
       let totalPrice = 0;
 
       // สมมติว่า res เป็น array ที่มีข้อมูลของ timeSlots จาก API
@@ -132,19 +162,13 @@ const Dashboard_View = () => {
       });
       // อัปเดต state ด้วยข้อมูลใหม่
       setTicketData(updatedTimeSlots);
-      setTotalCount(totalCount + count);
+      setTotalCount(count);
       setTotalPrice(totalPrice);
 
     } catch (e) {
       console.log(e);
     }
   };
-
-  const startIndex = (page - 1) * ITEMS_PER_PAGE;
-  const endIndex = startIndex + ITEMS_PER_PAGE;
-  const displayedBookings = bookings.slice(startIndex, endIndex);
-
-  const totalPages = Math.ceil(bookings.length / ITEMS_PER_PAGE);
 
   const getStatusColor = (status) => {
     switch (status.toLowerCase()) {
@@ -154,7 +178,7 @@ const Dashboard_View = () => {
         return { color: 'warning', backgroundColor: '#fff8e1', textColor: '#ffa000' };
       case 'ยกเลิก':
         return { color: 'error', backgroundColor: '#fde7e7', textColor: '#d32f2f' };
-      case 'พร้อมให้บริการ':
+      case 'รอให้บริการ':
         return { color: 'info', backgroundColor: '#e3f2fd', textColor: '#1976d2' };
       default:
         return { color: 'default', backgroundColor: '#f5f5f5', textColor: '#9e9e9e' };
@@ -168,10 +192,32 @@ const Dashboard_View = () => {
         <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="th">
           <Paper elevation={3} sx={{ p: 2, mb: 3 }}>
             <Grid container alignItems="center" justifyContent="space-between" spacing={2}>
+
               <Grid item xs={12} sm={4}>
-                <Box display="flex" alignItems="center" mb={1}>
-                  <FaCalendarAlt style={{ marginRight: '8px' }} />
-                  <Typography variant="body1">ระบุวันที่จองทริปข้อมูล</Typography>
+                <Box display="flex" justifyContent={'space-between'} alignItems="center" mb={1}>
+                  <Box display="flex" justifyContent={'space-between'} alignItems="center">
+                    <FaCalendarAlt style={{ marginRight: '8px' }} />
+
+                    <Typography variant="body1">ระบุวันที่จองทริปข้อมูล</Typography>
+                  </Box>
+                  <Box>
+                    <Button
+                      variant="contained"
+                      startIcon={<FaPrint />}
+                      width={'50%'}
+                      onClick={handleGetAllBooking}
+                      sx={{
+                        backgroundColor: '#e3f2fd',
+                        color: '#1976d2',
+                        border: '1px solid #ccc',
+                        '&:hover': {
+                          backgroundColor: '#f5f5f5',
+                        },
+                      }}
+                    >
+                      รายการจองทั้งหมด
+                    </Button>
+                  </Box>
                 </Box>
                 <DatePicker
                   value={selectedDate}
@@ -200,9 +246,8 @@ const Dashboard_View = () => {
                   startIcon={<FaPrint />}
                   fullWidth
                   sx={{
-
-                    backgroundColor: 'white',
-                    color: 'black',
+                    backgroundColor: '#e6f4ea',
+                    color: '#34a853',
                     border: '1px solid #ccc',
                     '&:hover': {
                       backgroundColor: '#f5f5f5',
@@ -243,6 +288,9 @@ const Dashboard_View = () => {
           </Grid>
           {displayedBookings && displayedBookings.length > 0 ? (
             <Grid item xs={12} md={8}>
+              <Typography variant="h5" gutterBottom color={'black'} fontWeight={'bold'}>
+                {title}
+              </Typography>
               <TableContainer component={Paper} sx={{ height: '100%' }}>
                 <Table boxShadow={4}>
                   <TableHead>
@@ -338,9 +386,20 @@ const Dashboard_View = () => {
               </Box>
             </Grid>
           ) : (
-            <p>No bookings available</p>
+            <Box
+              display="flex"
+              justifyContent="center"
+              alignItems="center"
+              height="100%"
+              width={'60%'}
+              margin={6}
+              paddingTop={'15%'}
+              flexDirection="column" // จัดเรียงไอคอนและข้อความในแนวตั้ง
+            >
+              <FiAlertCircle style={{ fontSize: 50, color: "#1976d2" }} /> {/* ขนาดไอคอนและสี */}
+              <Typography>No bookings available</Typography> {/* ข้อความแจ้งเตือน */}
+            </Box>
           )}
-
         </Grid>
       </Box>
     </Box>

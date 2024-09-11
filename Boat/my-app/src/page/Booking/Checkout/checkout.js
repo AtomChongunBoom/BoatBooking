@@ -23,14 +23,19 @@ import {
     FormGroup,
     FormControlLabel,
     Checkbox,
-    Autocomplete
+    Autocomplete,
+    Accordion,
+    AccordionSummary,
+    AccordionDetails,
 } from '@mui/material';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
+
 import { useTheme } from '@mui/material/styles';
 
 import { v4 as uuidv4 } from 'uuid';
 import { Rules } from './checkout_model';
 import { AddTicketboat, SendEmail, CreateSource, Getpayment } from '../../../service/booking_service';
-import { tr } from 'date-fns/locale';
+import { it } from 'date-fns/locale';
 
 
 const CheckoutView = () => {
@@ -48,6 +53,44 @@ const CheckoutView = () => {
     const [AutocompleteState, setAutocomplateState] = useState({
         district: false, setDistrict: false, zip_code: false
     }) //
+
+    const [expanded, setExpanded] = useState(false);
+    const [checked, setChecked] = useState({
+        Wallet_Payment: false,
+        Credit: false,
+        Rabbit: false,
+    });
+
+    const handleAccordionChange = (panel) => (event, isExpanded) => {
+        setExpanded(isExpanded ? panel : false);
+    };
+
+    const handleCheckboxChange = (panel) => (event) => {
+        const isChecked = event.target.checked;
+
+        // สร้าง object ใหม่โดยให้ทุก panel เป็น false
+        const newChecked = Object.keys(checked).reduce((acc, key) => {
+            acc[key] = false;
+            return acc;
+        }, {});
+
+        // ตั้งค่า panel ที่ถูกเลือกเป็น true (ถ้ามีการเลือก)
+        newChecked[panel] = isChecked;
+
+        setChecked(newChecked);
+
+        if (isChecked) {
+            setExpanded(panel);
+        } else {
+            setExpanded(false); // หรือค่าเริ่มต้นที่คุณต้องการ
+        }
+    };
+
+    const accordionData = [
+        { id: 'Wallet_Payment', label: 'Wallet Payment', content: 'True Walllet', imgUrl: 'https://play-lh.googleusercontent.com/eOzvk-ekluYaeLuvDkLb5RJ0KqfFQpodZDnppxPfpEfqEqbNo5erEkmwLBgqP-k-e2kQ' },
+        { id: 'Rabbit', label: 'Rabbit_linepay', content: 'Rabbit_linepay', imgUrl: 'https://img.stackshare.io/stack/373144/7442ac18e510efb2246879301b2a67b87be5dcc1.png' },
+        { id: 'Credit', label: 'Credit/Debit Card', content: 'Credit/Debit Card', imgUrl: 'https://cdn-icons-png.flaticon.com/512/6963/6963703.png' },
+    ];
 
     const [checkoutData, setCheckoutData] = useState({})
     const [checkboxValues, setCheckboxValues] = useState({
@@ -71,17 +114,22 @@ const CheckoutView = () => {
 
         const total_price = parseInt(Cookies.get('total_prices'), 10) || 0;
 
+        if (!time || !date || total_price === 0) {
+            navigate('/');
+        } else {
+            console.log('Proceed with booking process');
+        }
 
         let vat = (total_price * 7) / 100
         vat = parseInt(vat, 10);
 
         setCheckoutData({
-            id:uuidv4(),
+            id: uuidv4(),
             adults: adults,
             children: children,
             time: time,
             date: date,
-            total_price: total_price+vat,
+            total_price: total_price + vat,
             total_people: adults + children,
             vat: vat,
             amount: total_price,
@@ -158,20 +206,20 @@ const CheckoutView = () => {
 
     const formatDate = (dateString) => {
         try {
-          const date = new Date(dateString);
-          if (isNaN(date.getTime())) {
-            throw new Error('Invalid date');
-          }
-          
-          const day = String(date.getDate()).padStart(2, '0');
-          const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are 0-indexed
-          const year = date.getFullYear();
-          
-          return `${day}-${month}-${year}`;
+            const date = new Date(dateString);
+            if (isNaN(date.getTime())) {
+                throw new Error('Invalid date');
+            }
+
+            const day = String(date.getDate()).padStart(2, '0');
+            const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are 0-indexed
+            const year = date.getFullYear();
+
+            return `${day}-${month}-${year}`;
         } catch (error) {
-          throw new Error('Invalid date format. Please enter a valid date.');
+            throw new Error('Invalid date format. Please enter a valid date.');
         }
-      };
+    };
 
 
     const handleSubmitted = async () => {
@@ -185,44 +233,47 @@ const CheckoutView = () => {
 
             const result = formatDate(checkoutData.date);
             checkoutData.date = result;
-            console.log('Checked data',checkoutData)
+            console.log('Checked data', checkoutData)
             const validationResult = validateBookingData(checkoutData);
             if (!validationResult.isValid) {
                 throw new Error(`กรุณากรอกข้อมูลให้ครบถ้วน: ${validationResult.emptyFields.join(', ')}`);
+            } //Create Omise source
+            let omiseRes
+            if (checked.Wallet_Payment === true) {
+                omiseRes = await CreateSource('truemoney_jumpapp', checkoutData.total_price);
+            } else if (checked.Credit === true) {
+                omiseRes = await CreateSource('internet_banking_bay', checkoutData.total_price);
+            } else if (checked.Rabbit === true) {
+                omiseRes = await CreateSource('rabbit_linepay', checkoutData.total_price);
             }
 
-            //Add ticket boat
-            await AddTicketboat(checkoutData);
-
-            //Send email
-            //await SendEmail(checkoutData);
-
-            //Create Omise source
-            const omiseRes = await CreateSource(checkoutData.amount);
-
-            //Get payment
             const paymentData = {
-                "ticketID": checkoutData.id,
+                "ticketId": checkoutData.id,
                 "source": omiseRes.id,
-                "amount": checkoutData.amount,
+                "amount": checkoutData.total_price,
             };
+
             const paymentState = await Getpayment(paymentData);
 
             // Remove cookies
             ['adults', 'children', 'time', 'total_prices', 'date'].forEach(cookie => Cookies.remove(cookie));
 
-            // Show success message
-            AlertSuccess('สำเร็จ', 'ข้อมูลการจองของคุณถูกบันทึกเรียบร้อยแล้ว');
 
             // Redirect to payment page
-            window.location.href = paymentState.redirectUrl;
+            if (paymentState) {
+                //Add ticket boat
+                await AddTicketboat(checkoutData);
+                //console.log('Checked data',checkoutData)
+                await SendEmail(checkoutData);
+                AlertSuccess('สำเร็จ', 'ข้อมูลการจองของคุณถูกบันทึกเรียบร้อยแล้ว');
+                window.location.href = paymentState.redirectUrl;
+            }
 
         } catch (error) {
             console.error('Error in handleSubmitted:', error);
             AlertError('เกิดข้อผิดพลาด', error.message);
         }
     };
-
 
     const handleChangeAutocomplate = async (event, newValue, name) => {
         if (newValue) {
@@ -235,7 +286,7 @@ const CheckoutView = () => {
                     newData["zip_code"] = ""
                     const currentSubdistricts = subdistrictDefaut.filter(d => newValue.value === d.value);
                     setZipCode(currentSubdistricts);  // Set zip code based on the current subdistrict
-                    setAutocomplateState({province: true, district: true, setDistrict: true, zip_code: true});
+                    setAutocomplateState({ province: true, district: true, setDistrict: true, zip_code: true });
                 } else if (name === "province") {
                     newData[name] = newValue.value;
                     newData["district"] = null
@@ -253,7 +304,7 @@ const CheckoutView = () => {
                     newData["subdistrict"] = null
                     newData["zip_code"] = null
                     setSubdistrict(subdistrictDefaut.filter(d => newValue.value === d.district_id));
-                    setAutocomplateState({province: true, district: true, setDistrict: true, zip_code: false});
+                    setAutocomplateState({ province: true, district: true, setDistrict: true, zip_code: false });
                 }
                 return newData;
             });
@@ -276,7 +327,6 @@ const CheckoutView = () => {
                     backgroundRepeat: 'no-repeat',
                     display: 'flex',
                     justifyContent: 'center',
-                    alignItems: 'center',
                     padding: isMobile ? 0 : theme.spacing(2),
                     backgroundSize: '100%  auto',
                 }}
@@ -298,10 +348,10 @@ const CheckoutView = () => {
                         opacity: 0.5,
                         borderRadius: 'inherit',
                     },
-                    marginTop: isMobile ? '3200px' : '1700px'
+                    marginTop: '10px'
                 }}>
                     <Box display="flex" flexDirection={isMobile ? "column" : "row"} gap={2} sx={{ position: 'relative', zIndex: 1 }}>
-                        <Card sx={{ width: '70%', padding: '16px', boxShadow: 5 }}>
+                        <Card sx={{ width: isMobile ? '93%' : '70%', padding: '16px', boxShadow: 5 }}>
                             <CardContent>
                                 <Typography variant="h5" gutterBottom color={'black'} fontWeight={'bold'}>
                                     ข้อมูลการจอง
@@ -502,7 +552,7 @@ const CheckoutView = () => {
                                                     options={zip_code}
                                                     name="zip_code"
                                                     getOptionLabel={(option) => option.zip_code}
-                                                    renderInput={(params) => <TextField {...params} label="รหัสไปรษณีย์"  name='zip_code' />}
+                                                    renderInput={(params) => <TextField {...params} label="รหัสไปรษณีย์" name='zip_code' />}
                                                     onChange={(e, newValue) => handleChangeAutocomplate(e, newValue, "zip_code")}
                                                     fullWidth
                                                     ListboxProps={{
@@ -538,6 +588,79 @@ const CheckoutView = () => {
                                             </Box>
                                         </Grid>
                                     </Grid>
+                                </Box>
+                            </CardContent>
+                            <CardContent>
+                                <Typography variant="h5" gutterBottom color={'black'} fontWeight={'bold'}>
+                                    ช่องทางการชำระเงิน
+                                </Typography>
+                                <Divider />
+                                <Box margin={'16px'}>
+                                    <Box sx={{ width: '100%', margin: 'auto' }}>
+                                        {accordionData.map((item) => (
+                                            <Accordion
+                                                key={item.id}
+                                                expanded={expanded === item.id}
+                                                onChange={handleAccordionChange(item.id)}
+                                                sx={{
+                                                    '&:before': {
+                                                        display: 'none',
+                                                    },
+                                                    borderRadius: '4px',
+                                                    mb: 1,
+                                                    boxShadow: 1,
+                                                }}
+                                            >
+                                                <AccordionSummary
+                                                    expandIcon={<ExpandMoreIcon />}
+                                                    aria-controls={`${item.id}-content`}
+                                                    id={`${item.id}-header`}
+                                                    sx={{
+                                                        flexDirection: 'row-reverse',
+                                                        '& .MuiAccordionSummary-expandIconWrapper.Mui-expanded': {
+                                                            transform: 'rotate(180deg)',
+                                                        },
+                                                        '& .MuiAccordionSummary-content': {
+                                                            marginLeft: 2,
+                                                        },
+                                                    }}
+                                                >
+                                                    <FormControlLabel
+                                                        aria-label="Acknowledge"
+                                                        onClick={(event) => event.stopPropagation()}
+                                                        onFocus={(event) => event.stopPropagation()}
+                                                        control={
+                                                            <Checkbox
+                                                                checked={checked[item.id]}
+                                                                onChange={handleCheckboxChange(item.id)}
+                                                                sx={{ '&:hover': { bgcolor: 'transparent' } }}
+                                                            />
+                                                        }
+                                                        label={
+                                                            <Box display="flex" alignItems="center">
+                                                                <Box
+                                                                    component="img"
+                                                                    src={item.imgUrl}
+                                                                    sx={{ width: '40px', height: '40px', marginLeft: '8px' }} // Styling for the image
+                                                                    alt={`${item.label} image`} // Provide an alt text for accessibility
+                                                                />
+                                                                <Typography variant="subtitle1">{item.label}</Typography>
+                                                            </Box>
+                                                        }
+                                                    />
+                                                </AccordionSummary>
+                                                <AccordionDetails>
+                                                    <Typography>{item.content}</Typography>
+                                                    <Box
+                                                        component="img"
+                                                        src={item.imgUrl}
+                                                        sx={{ width: '100px', height: '100px', marginLeft: '8px' }} // Styling for the image
+                                                        alt={`${item.label} image`} // Provide an alt text for accessibility
+                                                    />
+                                                </AccordionDetails>
+                                            </Accordion>
+                                        ))}
+                                    </Box>
                                 </Box>
                             </CardContent>
                             <CardContent>
@@ -597,7 +720,7 @@ const CheckoutView = () => {
                                 </Box>
                             </CardContent>
                         </Card>
-                        <Card sx={{ width: '30%', height: '50vh', boxShadow: 5, padding: 2 }}>
+                        <Card sx={{ width: isMobile ? '93%' : '30%', height: isMobile ? '60vh' : '50vh', boxShadow: 5, padding: 2, margin: '2px' }}>
                             <CardContent>
                                 <Typography variant="h5" gutterBottom fontWeight={'bold'}>
                                     สรุปยอดชำระเงิน

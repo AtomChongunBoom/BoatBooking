@@ -151,18 +151,18 @@ app.get('/getCount/:date/:time', (req, res) => {
       date, time;
   `;
 
-//   SELECT 
-//   date, 
-//   time, 
-//   SUM(adults) AS total_adults, 
-//   SUM(children) AS total_children, 
-//   SUM(adults + children) AS total_people 
-// FROM 
-//   ticketboat 
-// WHERE 
-//   date = '24-09-2024'
-// GROUP BY 
-//   date, time;
+  //   SELECT 
+  //   date, 
+  //   time, 
+  //   SUM(adults) AS total_adults, 
+  //   SUM(children) AS total_children, 
+  //   SUM(adults + children) AS total_people 
+  // FROM 
+  //   ticketboat 
+  // WHERE 
+  //   date = '24-09-2024'
+  // GROUP BY 
+  //   date, time;
 
   // Execute the SQL query
   db.query(query, [date, time], (err, results) => {
@@ -188,11 +188,11 @@ app.get('/getCount/:date/:time', (req, res) => {
 });
 
 app.get('/getCounterTicketByDay', (req, res) => {
-  const date = req.query.date; 
+  const date = req.query.date;
   console.log(date);
-    if (!date) {
-        return res.status(400).send('Date parameter is required.');
-    }
+  if (!date) {
+    return res.status(400).send('Date parameter is required.');
+  }
 
   const query = `
     SELECT 
@@ -211,6 +211,31 @@ app.get('/getCounterTicketByDay', (req, res) => {
   `;
 
   db.query(query, [date], (err, result) => {
+    if (err) {
+      console.error(err);
+      res.status(500).send('Server error');
+    } else {
+      res.send(result);
+    }
+  });
+});
+
+app.get('/getTicketByDay/:date', (req, res) => {
+  const date = req.params;
+  console.log(date.date);
+  if (!date) {
+    return res.status(400).send('Date parameter is required.');
+  }
+
+  const query = `
+   SELECT *
+    FROM 
+      ticketboat 
+    WHERE 
+      date = ?
+  `;
+
+  db.query(query, [date.date], (err, result) => {
     if (err) {
       console.error(err);
       res.status(500).send('Server error');
@@ -458,8 +483,6 @@ const transporter = nodemailer.createTransport({
     pass: process.env.EMAIL_PASS
   },
   requireTLS: true,
-  debug: true, // เพิ่มบรรทัดนี้
-  logger: true // และบรรทัดนี้
 });
 
 app.post('/send-email', async (req, res) => {
@@ -471,11 +494,11 @@ app.post('/send-email', async (req, res) => {
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
-    console.log('Sending email to:', email);
-    console.log("time:", time);
-    console.log('EMAIL_USER:', process.env.EMAIL_USER);
-console.log('EMAIL_PASS is set:', !!process.env.EMAIL_PASS);
-console.log('EmailHTML path:', process.env.EmailHTML);
+    // console.log('Sending email to:', email);
+    // console.log("time:", time);
+    // console.log('EMAIL_USER:', process.env.EMAIL_USER);
+    // console.log('EMAIL_PASS is set:', !!process.env.EMAIL_PASS);
+    // console.log('EmailHTML path:', process.env.EmailHTML);
 
     const adultTotal = adults * 1500;
     const childrenTotal = children * 1000;
@@ -487,9 +510,9 @@ console.log('EmailHTML path:', process.env.EmailHTML);
     // }
     // date = format(new Date(date), 'dd/MM/yyyy');
 
-    console.log('Generating QR Code...');
+    // console.log('Generating QR Code...');
     const qrCodeUrl = await QRCode.toDataURL(id);
-    console.log('QR Code generated successfully');
+    // console.log('QR Code generated successfully');
 
     const emailData = {
       id, date, time, adults, children, total_people,
@@ -497,9 +520,9 @@ console.log('EmailHTML path:', process.env.EmailHTML);
       adultTotal, childrenTotal, totalVat, total_price, qrCodeUrl
     };
 
-    console.log('Reading HTML template...');
+    // console.log('Reading HTML template...');
     const htmlTemplate = fs.readFileSync(process.env.EmailHTML, 'utf8');
-    console.log('HTML template read successfully');
+    // console.log('HTML template read successfully');
 
     const template = handlebars.compile(htmlTemplate);
     const htmlToSend = template(emailData);
@@ -511,18 +534,16 @@ console.log('EmailHTML path:', process.env.EmailHTML);
       html: htmlToSend
     };
 
-    console.log('Sending email...');
+    // console.log('Sending email...');
     let info;
     try {
-      transporter.verify(function(error, success) {
+      transporter.verify(function (error, success) {
         if (error) {
           console.log('SMTP connection error:', error);
         } else {
           console.log("SMTP connection is ready to take our messages");
         }
       });
-      
-      
       info = await transporter.sendMail(mailOptions);
       if (info.rejected.length > 0) {
         console.error('Email was rejected:', info.rejected);
@@ -549,7 +570,7 @@ const createCharge = (source, amount, ticketId) => {
     omise.charges.create({
       amount: (amount * 100),
       currency: 'THB',
-      return_uri: `http://localhost:3000/payment/success`,
+      return_uri: `http://localhost:3000/payment/success/${ticketId}`,
       metadata: {
         ticketId
       },
@@ -565,9 +586,9 @@ const createCharge = (source, amount, ticketId) => {
 
 app.post('/payment', async (req, res) => {
   try {
-    const { source: sourceId, ticketId, amount } = req.body;
+    const { source: sourceId,amount,ticketId } = req.body;
 
-    const omiseRes = await createCharge(sourceId, amount, ticketId);
+    const omiseRes = await createCharge(sourceId,amount, ticketId);
     // console.log(omiseRes);
 
     const data = {
@@ -577,6 +598,8 @@ app.post('/payment', async (req, res) => {
       amount: omiseRes.amount / 100,
       redirectUrl: omiseRes.authorize_uri,
     };
+
+    console.log(data);
 
     res.status(200).json(data);
   } catch (error) {
