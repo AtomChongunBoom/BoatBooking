@@ -339,7 +339,7 @@ app.post('/addTicketboat', (req, res) => {
     creat_date
   } = req.body;
   booking_id = generateWorkOrderNumber()
-  const status = "รอชำระเงิน";
+  const status = "ชำระเงินแล้ว";
   const sql = `
     INSERT INTO ticketboat (id,booking_id,date, time, adults, children, total_people,vat,amount, total_price, first_name, last_name, email, tel, address, province, district, subdistrict, zip_code, note, status, creat_date)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?,?,?,?)

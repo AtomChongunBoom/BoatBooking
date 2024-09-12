@@ -47,3 +47,9 @@ export const Rules = [
   ];
 
   const checkout_model = {};
+
+  export const accordionData = [
+    { id: 'Wallet_Payment', label: 'Wallet Payment', content: 'True Walllet', imgUrl: 'https://play-lh.googleusercontent.com/eOzvk-ekluYaeLuvDkLb5RJ0KqfFQpodZDnppxPfpEfqEqbNo5erEkmwLBgqP-k-e2kQ' },
+    { id: 'Rabbit', label: 'Rabbit_linepay', content: 'Rabbit_linepay', imgUrl: 'https://img.stackshare.io/stack/373144/7442ac18e510efb2246879301b2a67b87be5dcc1.png' },
+    { id: 'Credit', label: 'Credit/Debit Card', content: 'Credit/Debit Card', imgUrl: 'https://cdn-icons-png.flaticon.com/512/6963/6963703.png' },
+];

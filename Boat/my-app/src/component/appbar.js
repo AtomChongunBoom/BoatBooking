@@ -28,7 +28,7 @@ const AppBarComponent = () => {
   }
 
   return (
-    <Box sx={{ flexGrow: 1 ,zIndex:999}}>
+    <Box sx={{ flexGrow: 1 ,zIndex:999,bgcolor:"white"}}>
       <AppBar position="static" color="transparent" sx={{ boxShadow: 2 }}>
         <Toolbar>
           <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>

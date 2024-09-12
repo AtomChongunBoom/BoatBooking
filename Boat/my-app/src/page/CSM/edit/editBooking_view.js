@@ -34,7 +34,7 @@ const TicketForm_View = () => {
     const navigate = useNavigate()
     const { id } = useParams();
 
-    const steps = ['รอชำระเงิน', 'ชำระเงินแล้ว', 'รอให้บริการ', 'เสร็จสิ้น'];
+    const steps = ['ชำระเงินแล้ว', 'เลื่อน', 'เสร็จสิ้น'];
     const [activeStep, setActiveStep] = useState(0);
 
     const subdistricts = ["Subdistrict 1", "Subdistrict 2", "Subdistrict 3"];
@@ -128,6 +128,21 @@ const TicketForm_View = () => {
 
     const handleChange = (event) => {
         const { name, value } = event.target;
+        if(name === 'date' || name === 'time'){
+            setBookingData(prevState => ({
+                ...prevState,
+                ["status"]: "เลื่อน"
+            }));
+        }
+
+        // if(name === 'date'){
+        //     const date = new Date(value);
+        //     const bookingDate = formatInputDate(date);
+        //     setBookingData(prevState => ({
+        //         ...prevState,
+        //         ["date"]: bookingDate
+        //     }));
+        // }
         setBookingData(prevState => ({
             ...prevState,
             [name]: value
@@ -197,7 +212,7 @@ const TicketForm_View = () => {
         if (!date) return '';
         // แปลงค่าจาก DD-MM-YYYY เป็น YYYY-MM-DD
         const [day, month, year] = date.split('-');
-        return `${year}-${month}-${day}`;
+        return `${day}-${month}-${year}`;
       };
 
     return (
@@ -232,7 +247,7 @@ const TicketForm_View = () => {
                         <Typography variant="body2" sx={{ mb: 1, fontWeight: 'bold' }}>
                             Registration
                         </Typography>
-                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                        {/* <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                             {['Personal details', 'Family', 'Professional details', 'Review & confirm'].map(
 
                                 (item, index) => (
@@ -249,7 +264,7 @@ const TicketForm_View = () => {
                                     </Box>
                                 )
                             )}
-                        </Box>
+                        </Box> */}
                         <Button
                             fullWidth
                             variant="outlined"
@@ -275,7 +290,7 @@ const TicketForm_View = () => {
                                 </Step>
                             ))}
                         </Stepper>
-                        <Card sx={{ padding: 2, margin: 2, boxShadow: 4 }} >
+                        <Card sx={{ padding: 2, margin: 2, boxShadow: 4 ,borderRadius:4 }} >
                             <Typography variant="h5" sx={{ mb: 2 }}>
                                 Customer Information
                                 <IconButton size="small">
@@ -505,7 +520,7 @@ const TicketForm_View = () => {
                                 </Grid>
                             </Grid>
                         </Card>
-                        <Card sx={{ padding: 2, margin: 2, boxShadow: 4 }}>
+                        <Card sx={{ padding: 2, margin: 2, boxShadow: 4 ,borderRadius:4}}>
                             <Typography variant="h5" sx={{ mb: 2 }}>
                                 Ticket details
                                 <IconButton size="small">
@@ -517,7 +532,7 @@ const TicketForm_View = () => {
                                     <Typography sx={{ marginBottom: 2, fontSize: '18px' }}>Date</Typography>
                                     <TextField
                                         fullWidth
-                                        name="ticketDate"
+                                        name="date"
                                         label="Date"
                                         type="date"
                                         value={BookingData.date}

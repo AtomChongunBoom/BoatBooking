@@ -34,6 +34,7 @@ import { useTheme } from '@mui/material/styles';
 import { v4 as uuidv4 } from 'uuid';
 import { Rules } from './checkout_model';
 import { AddTicketboat, SendEmail, CreateSource, Getpayment } from '../../../service/booking_service';
+import { accordionData } from './checkout_model';
 
 
 const CheckoutView = () => {
@@ -85,11 +86,7 @@ const CheckoutView = () => {
         }
     };
 
-    const accordionData = [
-        { id: 'Wallet_Payment', label: 'Wallet Payment', content: 'True Walllet', imgUrl: 'https://play-lh.googleusercontent.com/eOzvk-ekluYaeLuvDkLb5RJ0KqfFQpodZDnppxPfpEfqEqbNo5erEkmwLBgqP-k-e2kQ' },
-        { id: 'Rabbit', label: 'Rabbit_linepay', content: 'Rabbit_linepay', imgUrl: 'https://img.stackshare.io/stack/373144/7442ac18e510efb2246879301b2a67b87be5dcc1.png' },
-        { id: 'Credit', label: 'Credit/Debit Card', content: 'Credit/Debit Card', imgUrl: 'https://cdn-icons-png.flaticon.com/512/6963/6963703.png' },
-    ];
+
 
     const [checkoutData, setCheckoutData] = useState({})
     const [checkboxValues, setCheckboxValues] = useState({
@@ -233,9 +230,11 @@ const CheckoutView = () => {
             if (!Object.values(checkboxValues).every(value => value === true)) {
                 throw new Error('กรุณากดยอมรับเงื่อนไข');
             }
-            if(!checkoutData.date){
+
+            if(!formatDateState){
                 setFormatDateState(true);
                 const result = formatDate(checkoutData.date);
+                checkoutData.date = result;
             }
             console.log('Checked data', checkoutData)
             const validationResult = validateBookingData(checkoutData);
@@ -268,11 +267,11 @@ const CheckoutView = () => {
             if (paymentState) {
                 //Add ticket boat
                 await AddTicketboat(checkoutData);
+                setFormatDateState(false)
                 //console.log('Checked data',checkoutData)
                 AlertSuccess('สำเร็จ', 'ข้อมูลการจองของคุณถูกบันทึกเรียบร้อยแล้ว');
                 window.location.href = paymentState.redirectUrl;
             }
-
         } catch (error) {
             console.error('Error in handleSubmitted:', error);
             AlertError('เกิดข้อผิดพลาด', error.message);
@@ -587,7 +586,7 @@ const CheckoutView = () => {
                                                     name="zip_code"
                                                     getOptionLabel={(option) => option.zip_code}
                                                     renderInput={(params) => <TextField {...params} label="รหัสไปรษณีย์" name='zip_code' />}
-                                                    value={zip_code.find(p => p.value === checkoutData.zip_code) || null}
+                                                    value={zip_code.find(p => p.zip_code === checkoutData.zip_code) || null}
                                                     onChange={(e, newValue) => handleChangeAutocomplate(e, newValue, "zip_code")}
                                                     fullWidth
                                                     ListboxProps={{
@@ -755,7 +754,7 @@ const CheckoutView = () => {
                                 </Box>
                             </CardContent>
                         </Card>
-                        <Card sx={{ width: isMobile ? '93%' : '30%', height: isMobile ? '60vh' : '50vh', boxShadow: 5, padding: 2, margin: '2px' }}>
+                        <Card sx={{ width: isMobile ? '93%' : '30%',height:isMobile ? "60vh" : "50vh", boxShadow: 5, padding: 2, margin: '2px' }}>
                             <CardContent>
                                 <Typography variant="h5" gutterBottom fontWeight={'bold'}>
                                     สรุปยอดชำระเงิน

@@ -178,7 +178,7 @@ const Dashboard_View = () => {
         return { color: 'warning', backgroundColor: '#fff8e1', textColor: '#ffa000' };
       case 'ยกเลิก':
         return { color: 'error', backgroundColor: '#fde7e7', textColor: '#d32f2f' };
-      case 'รอให้บริการ':
+      case 'ชำระเงินแล้ว':
         return { color: 'info', backgroundColor: '#e3f2fd', textColor: '#1976d2' };
       default:
         return { color: 'default', backgroundColor: '#f5f5f5', textColor: '#9e9e9e' };
@@ -186,9 +186,9 @@ const Dashboard_View = () => {
   };
 
   return (
-    <Box>
+    <Box sx={{height:'142vh'}}>
       <AppBarComponent />
-      <Box sx={{ p: 3 }}>
+      <Box sx={{ p: 3}}>
         <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="th">
           <Paper elevation={3} sx={{ p: 2, mb: 3 }}>
             <Grid container alignItems="center" justifyContent="space-between" spacing={2}>
@@ -291,7 +291,7 @@ const Dashboard_View = () => {
               <Typography variant="h5" gutterBottom color={'black'} fontWeight={'bold'}>
                 {title}
               </Typography>
-              <TableContainer component={Paper} sx={{ height: '100%' }}>
+              <TableContainer component={Paper} sx={{ height: '100%' ,boxShadow:4}}>
                 <Table boxShadow={4}>
                   <TableHead>
                     <TableRow>
@@ -345,7 +345,7 @@ const Dashboard_View = () => {
                             label={booking.status || 'N/A'}
                             size="medium"
                             sx={{
-                              width: '90%',
+                              width: '100%',
                               backgroundColor: getStatusColor(booking.status).backgroundColor,
                               borderColor: getStatusColor(booking.status).textColor,
                               '& .MuiChip-label': {
