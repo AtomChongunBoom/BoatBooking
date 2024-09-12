@@ -19,7 +19,6 @@ import {
     List,
     ListItem,
     Divider,
-    MenuItem,
     FormGroup,
     FormControlLabel,
     Checkbox,
@@ -35,7 +34,6 @@ import { useTheme } from '@mui/material/styles';
 import { v4 as uuidv4 } from 'uuid';
 import { Rules } from './checkout_model';
 import { AddTicketboat, SendEmail, CreateSource, Getpayment } from '../../../service/booking_service';
-import { it } from 'date-fns/locale';
 
 
 const CheckoutView = () => {
@@ -60,6 +58,7 @@ const CheckoutView = () => {
         Credit: false,
         Rabbit: false,
     });
+    const [formatDateState, setFormatDateState] = useState(false);
 
     const handleAccordionChange = (panel) => (event, isExpanded) => {
         setExpanded(isExpanded ? panel : false);
@@ -102,43 +101,48 @@ const CheckoutView = () => {
     const [dataFetched, setDataFetched] = useState(false);
     const [formattedData, setFormattedData] = useState('')
     useEffect(() => {
-        if (!dataFetched) {
-            Omise.setPublicKey(process.env.REACT_APP_OMISE_PUBLIC_KEY)
-            init();
-        }
-
-        const adults = parseInt(Cookies.get('adults'), 10) || 0;
-        const children = parseInt(Cookies.get('children'), 10) || 0;
+        const adults = Cookies.get('adults');
+        const children = Cookies.get('children');
         const time = Cookies.get('time');
         const date = Cookies.get('date');
-
-        const total_price = parseInt(Cookies.get('total_prices'), 10) || 0;
-
-        if (!time || !date || total_price === 0) {
-            navigate('/');
-        } else {
-            console.log('Proceed with booking process');
+        const total_price = Cookies.get('total_prices');
+      
+        if (!adults || !children || !time || !date || !total_price) {
+          navigate('/');
+          return; // ออกจาก useEffect เพื่อไม่ให้ทำงานต่อ
         }
-
-        let vat = (total_price * 7) / 100
+      
+        // แปลงค่าเป็นตัวเลขหลังจากตรวจสอบว่ามีค่าแล้ว
+        const adultsNum = parseInt(adults, 10);
+        const childrenNum = parseInt(children, 10);
+        const total_priceNum = parseInt(total_price, 10);
+      
+        console.log('Proceed with booking process');
+      
+        if (!dataFetched) {
+          Omise.setPublicKey(process.env.REACT_APP_OMISE_PUBLIC_KEY);
+          init();
+        }
+      
+        let vat = (total_priceNum * 7) / 100;
         vat = parseInt(vat, 10);
-
+      
         setCheckoutData({
-            id: uuidv4(),
-            adults: adults,
-            children: children,
-            time: time,
-            date: date,
-            total_price: total_price + vat,
-            total_people: adults + children,
-            vat: vat,
-            amount: total_price,
-            creat_date: new Date().toISOString()
-        })
+          id: uuidv4(),
+          adults: adultsNum,
+          children: childrenNum,
+          time: time,
+          date: date,
+          total_price: total_priceNum + vat,
+          total_people: adultsNum + childrenNum,
+          vat: vat,
+          amount: total_priceNum,
+          creat_date: new Date().toISOString()
+        });
+      
         const resDate = format(new Date(date), 'dd/MM/yyyy');
         setFormattedData(resDate);
-        // }
-    }, []);
+      }, []);
 
     const init = async () => {
         try {
@@ -221,7 +225,6 @@ const CheckoutView = () => {
         }
     };
 
-
     const handleSubmitted = async () => {
         //loading
         AlertLoading()
@@ -230,13 +233,15 @@ const CheckoutView = () => {
             if (!Object.values(checkboxValues).every(value => value === true)) {
                 throw new Error('กรุณากดยอมรับเงื่อนไข');
             }
-
-            const result = formatDate(checkoutData.date);
-            checkoutData.date = result;
+            if(!checkoutData.date){
+                setFormatDateState(true);
+                const result = formatDate(checkoutData.date);
+            }
             console.log('Checked data', checkoutData)
             const validationResult = validateBookingData(checkoutData);
             if (!validationResult.isValid) {
                 throw new Error(`กรุณากรอกข้อมูลให้ครบถ้วน: ${validationResult.emptyFields.join(', ')}`);
+                return
             } //Create Omise source
             let omiseRes
             if (checked.Wallet_Payment === true) {
@@ -256,15 +261,14 @@ const CheckoutView = () => {
             const paymentState = await Getpayment(paymentData);
 
             // Remove cookies
-            ['adults', 'children', 'time', 'total_prices', 'date'].forEach(cookie => Cookies.remove(cookie));
+            //['adults', 'children', 'time', 'total_prices', 'date'].forEach(cookie => Cookies.remove(cookie));
 
-
+            await SendEmail(checkoutData);
             // Redirect to payment page
             if (paymentState) {
                 //Add ticket boat
                 await AddTicketboat(checkoutData);
                 //console.log('Checked data',checkoutData)
-                await SendEmail(checkoutData);
                 AlertSuccess('สำเร็จ', 'ข้อมูลการจองของคุณถูกบันทึกเรียบร้อยแล้ว');
                 window.location.href = paymentState.redirectUrl;
             }
@@ -276,6 +280,7 @@ const CheckoutView = () => {
     };
 
     const handleChangeAutocomplate = async (event, newValue, name) => {
+        console.log("newvalue",newValue);
         if (newValue) {
             setCheckoutData(prevData => {
                 const newData = { ...prevData };
@@ -305,6 +310,35 @@ const CheckoutView = () => {
                     newData["zip_code"] = null
                     setSubdistrict(subdistrictDefaut.filter(d => newValue.value === d.district_id));
                     setAutocomplateState({ province: true, district: true, setDistrict: true, zip_code: false });
+                }
+                return newData;
+            });
+        }else{
+            setCheckoutData(prevData => {
+                const newData = { ...prevData };
+                if (name === 'zip_code') {
+                    newData[name] = "";
+                } else if (name === 'subdistrict') {
+                    newData[name] = "";
+                    newData["zip_code"] = ""
+                    setAutocomplateState({ province: true, district: true, setDistrict: true, zip_code: false });
+                } else if (name === "province") {
+                    newData[name] = "";
+                    newData["district"] = null
+                    newData["subdistrict"] = null
+                    newData["zip_code"] = null
+                    setAutocomplateState({
+                        province: true,
+                        district: false,
+                        subdistrict: false,
+                        zip_code: false
+                    });
+                } else if (name === "district") {
+                    newData[name] = "";
+                    newData["subdistrict"] = null
+                    newData["zip_code"] = null
+                    
+                    setAutocomplateState({ province: true, district: true, setDistrict: false, zip_code: false });
                 }
                 return newData;
             });
@@ -553,6 +587,7 @@ const CheckoutView = () => {
                                                     name="zip_code"
                                                     getOptionLabel={(option) => option.zip_code}
                                                     renderInput={(params) => <TextField {...params} label="รหัสไปรษณีย์" name='zip_code' />}
+                                                    value={zip_code.find(p => p.value === checkoutData.zip_code) || null}
                                                     onChange={(e, newValue) => handleChangeAutocomplate(e, newValue, "zip_code")}
                                                     fullWidth
                                                     ListboxProps={{
